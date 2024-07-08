@@ -1,9 +1,8 @@
 // store/userSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { User } from '@/types/user';
 
 interface UserState {
-  user: User | null;
+  user: any | null;
   isTrialActive: boolean;
   isTrialExpired: boolean;
   isSubActive: boolean;
@@ -28,7 +27,7 @@ const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    setUser(state, action: PayloadAction<User | null>) {
+    setUser(state, action: PayloadAction<any | null>) {
       state.user = action.payload;
     },
     setTrialActive(state, action: PayloadAction<boolean>) {

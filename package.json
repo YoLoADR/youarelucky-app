@@ -14,6 +14,7 @@
     "@chakra-ui/react": "^2.8.2",
     "@chakra-ui/system": "^2.6.2",
     "@chakra-ui/theme-tools": "^2.1.2",
+    "@codemirror/legacy-modes": "^6.4.0",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
@@ -33,6 +34,8 @@
     "babel-preset-react": "^6.24.1",
     "babel-register": "^6.26.0",
     "dotenv": "^16.4.5",
+    "endent": "^2.1.0",
+    "eventsource-parser": "^1.1.2",
     "firebase": "^10.12.3",
     "firebase-admin": "^12.2.0",
     "next": "^14.2.4",
@@ -50,7 +53,7 @@
     "react-scripts": "5.0.1",
     "react-toastify": "^10.0.5",
     "stripe": "^16.1.0",
-    "typescript": "5.5.3",
+    "typescript": "4.9.5",
     "web3": "^4.10.0"
   },
   "devDependencies": {
@@ -58,11 +61,12 @@
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
     "autoprefixer": "^10.4.19",
-    "eslint": "9.6.0",
-    "eslint-config-next": "14.2.4",
-    "postcss": "^8.4.39",
-    "prettier-plugin-tailwindcss": "^0.6.5",
-    "tailwindcss": "^3.4.4"
+    "eslint": "8.37.0",
+    "eslint-config-next": "13.2.4",
+    "eventsource": "^2.0.2",
+    "postcss": "^8.4.21",
+    "prettier-plugin-tailwindcss": "^0.2.6",
+    "tailwindcss": "^3.3.1"
   },
   "resolutions": {
     "@types/react": "18.0.31",

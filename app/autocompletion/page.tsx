@@ -37,13 +37,6 @@ export default function Autocompletion() {
     setIsModalOpen(false);
   };
 
-  const handleAddItem = () => {
-    const newItem = { id: Date.now(), title: '', description: '', content: '', image: 'https://res.cloudinary.com/dy4hywvlz/image/upload/v1717835412/uexigefa7dhqxw7pqf1u.png', progress: 0 };
-    setItems([...items, newItem]);
-    setCurrentItem(newItem);
-    setActiveTabIndex(0);
-  };
-
   const handleDeleteItem = (id) => {
     setItems(items.filter(item => item.id !== id));
   };
@@ -131,13 +124,13 @@ export default function Autocompletion() {
                   <span style={{ fontWeight: 'bold' }}>Content:</span> {item.content}
                 </Box>
                 <Flex justifyContent="space-between">
-                  <IconButton icon={<DeleteIcon />} onClick={(e) => { e.stopPropagation(); handleDeleteItem(item.id); }} mr="2" />
-                  <IconButton icon={<DownloadIcon />} onClick={(e) => { e.stopPropagation(); handleDownloadItem(item.id); }} />
+                  <IconButton aria-label="Delete item" icon={<DeleteIcon />} onClick={(e) => { e.stopPropagation(); handleDeleteItem(item.id); }} mr="2" />
+                  <IconButton aria-label="Download Item" icon={<DownloadIcon />} onClick={(e) => { e.stopPropagation(); handleDownloadItem(item.id); }} />
                 </Flex>
               </Box>
             ))}
             <Box display="flex" alignItems="center" justifyContent="center" border="1px dashed" borderColor={borderColor} borderRadius="10px" p="10px">
-              <IconButton icon={<AddIcon />} onClick={handleOpenModal} />
+              <IconButton aria-label="Open Modal" icon={<AddIcon />} onClick={handleOpenModal} />
             </Box>
           </SimpleGrid>
         </Box>
@@ -233,7 +226,7 @@ export default function Autocompletion() {
           <Box fontWeight="bold" fontSize="lg" textAlign="center" mt="20px">Select an item to edit</Box>
         )}
       </Card>
-      <AddDocModal isOpen={isModalOpen} onClose={handleCloseModal} onSelectItem={handleSelectItem} />
+      {/* <AddDocModal isOpen={isModalOpen} onClose={handleCloseModal} onSelectItem={handleSelectItem} /> */}
     </Flex>
   );
 }

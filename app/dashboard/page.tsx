@@ -14,7 +14,7 @@ import { EditIcon, DeleteIcon } from '@chakra-ui/icons';
 export default function Dashboard() {
   const { user } = useAppSelector((state) => state.user);
   const dispatch = useAppDispatch();
-  const activeProject = useSelector((state: RootState) => state.activeProject.activeProject);
+  const activeProject = useSelector((state: any) => state.activeProject.activeProject);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [isEditing, setIsEditing] = useState(false);

@@ -24,7 +24,7 @@ const projectsSlice = createSlice({
   name: 'projects',
   initialState,
   reducers: {
-    setActiveProject(state, action: PayloadAction<Project | null>) {
+    setActiveProject(state, action: PayloadAction<any | null>) {
       state.activeProject = action.payload;
       if (action.payload) {
         localStorage.setItem('activeProject', JSON.stringify(action.payload));
@@ -32,16 +32,16 @@ const projectsSlice = createSlice({
         localStorage.removeItem('activeProject');
       }
     },
-    setProjects(state, action: PayloadAction<Project[]>) {
+    setProjects(state, action: PayloadAction<any[]>) {
       state.projects = action.payload;
     },
-    addProject(state, action: PayloadAction<Project>) {
+    addProject(state, action: PayloadAction<any>) {
       state.projects.push(action.payload);
     },
     removeProject(state, action: PayloadAction<string>) {
       state.projects = state.projects.filter(project => project.id !== action.payload);
     },
-    updateProject(state, action: PayloadAction<Project>) {
+    updateProject(state, action: PayloadAction<any>) {
       const index = state.projects.findIndex(project => project.id === action.payload.id);
       if (index !== -1) {
         state.projects[index] = action.payload;

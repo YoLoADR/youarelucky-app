@@ -9,6 +9,7 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "jsx": "preserve",
@@ -17,14 +18,14 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "incremental": true,
-    "strict": false, // Désactive toutes les vérifications strictes
-    "noImplicitAny": false, // Autorise les expressions et déclarations avec un typage 'any' implicite
-    "strictNullChecks": false, // Ne vérifie pas si les valeurs peuvent être null ou undefined
-    "strictFunctionTypes": false, // Ne vérifie pas strictement les types des fonctions
-    "strictPropertyInitialization": false, // Ne vérifie pas si les propriétés de classes sont initialisées dans le constructeur
-    "strictBindCallApply": false, // Ne vérifie pas strictement les appels et les bindings de fonctions
-    "noImplicitThis": false, // Autorise 'this' à être de type 'any'
-    "alwaysStrict": false ,
+    "strict": false,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "strictFunctionTypes": false,
+    "strictPropertyInitialization": false,
+    "strictBindCallApply": false,
+    "noImplicitThis": false,
+    "alwaysStrict": false,
     "paths": {
       "@/*": [
         "./src/*"
