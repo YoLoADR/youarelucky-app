@@ -75,7 +75,7 @@ async function getDataFromFirestore(uid: string, projectId: string) {
     }
   
     try {
-      const inputDir = path.join(process.cwd(), 'Documents/input_pdf');
+      const inputDir = path.join(process.cwd(), 'documents/input_pdf');
       const inputPdfPath = path.join(inputDir, templateName);
       if (!fs.existsSync(inputPdfPath)) {
         return NextResponse.json({ message: 'Template not found' }, { status: 404 });
