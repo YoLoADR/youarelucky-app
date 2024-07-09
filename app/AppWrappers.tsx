@@ -87,9 +87,10 @@ export default function AppWrapper({ children }: { children: ReactNode }) {
     }
   }, [mockMode, router, dispatch]);
 
-  // if (isLoading) {
-  //   return <Spinner />; // Afficher un indicateur de chargement ou rien du tout
-  // }
+  if (isLoading) {
+    //return <Spinner />; // Afficher un indicateur de chargement ou rien du tout
+    return <span>Is loading ...</span>
+  }
 
   const isAuthPage = pathname?.includes('register') || pathname?.includes('sign-in');
 
