@@ -15,6 +15,7 @@ import {
   InputRightElement,
   Text,
   useColorModeValue,
+  useToast,
 } from '@chakra-ui/react';
 import illustration from '/public/img/auth/auth.png';
 import { HSeparator } from '@/components/separator/Separator';
@@ -28,6 +29,7 @@ import firebase from 'firebase/compat/app';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/hooks';
 import { setUser, updateSubscription } from '@/store/userSlice';
+import Spinner from '@/components/Spinner'; // Assurez-vous d'avoir un composant Spinner pour indiquer le chargement
 
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 
@@ -50,19 +52,19 @@ function SignIn() {
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState(false);
   const [isLoginInProgress, setLoginInProgress] = useState(false);
+  const [error, setError] = useState('');
 
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { user, isSubActive, isTrialActive, isNewComer } = useAppSelector((state) => state.user);
+  const toast = useToast();
 
   // Listening to Redux store user changes
   useEffect(() => {
     if (isSubActive || isTrialActive) {
-      console.log('User is present, redirecting to /ai-assistant');
       router.push('/ai-assistant');
     } else if (user && isNewComer) {
-      console.log('User is a new comer, redirecting to /demo');
-      router.push('/ai-assistant');
+      router.push('/my-project');
     }
   }, [user, isSubActive, isTrialActive, isNewComer, router]);
 
@@ -72,10 +74,16 @@ function SignIn() {
       setLoginInProgress(true);
       const result = await auth.signInWithPopup(googleProvider);
       const user = result.user;
-      console.log('Google Sign-In User:', user);
       await handleUserCreation(user);
     } catch (error) {
       console.error('Google Sign-In Error:', error);
+      toast({
+        title: "Sign-In Error",
+        description: "Unable to sign in with Google. Please try again.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
     } finally {
       setLoginInProgress(false);
     }
@@ -90,10 +98,10 @@ function SignIn() {
       setLoginInProgress(true);
       const result = await auth.signInWithEmailAndPassword(email, password);
       const user = result.user;
-      console.log('User signed in with email: ', user);
       await handleUserCreation(user);
     } catch (error) {
-      console.error('Sign up error: ', error);
+      console.error('Sign-In Error:', error);
+      setError('Invalid email or password. Please try again.');
       setEmail('');
       setPassword('');
     } finally {
@@ -127,183 +135,192 @@ function SignIn() {
       providerData,
       subscriptions: subscriptionsData,
     };
-    console.log("User data:", userdata);
     dispatch(setUser(userdata));
     dispatch(updateSubscription(subscriptionsData));
   };
 
   return (
     <DefaultAuth illustrationBackground={illustration?.src}>
-      <Flex
-        w="100%"
-        maxW="max-content"
-        mx={{ base: 'auto', lg: '0px' }}
-        me="auto"
-        h="100%"
-        justifyContent="center"
-        mb={{ base: '30px', md: '60px' }}
-        px={{ base: '25px', md: '0px' }}
-        mt={{ base: '40px', md: '12vh' }}
-        flexDirection="column"
-      >
-        <Box me="auto">
-          <Text
-            color={textColor}
-            fontSize={{ base: '34px', lg: '36px' }}
-            mb="10px"
-            fontWeight={'700'}
-          >
-            Sign In
-          </Text>
-          <Text
-            mb="36px"
-            ms="4px"
-            color={textColorSecondary}
-            fontWeight="500"
-            fontSize="sm"
-          >
-            Enter your email and password to sign in!
-          </Text>
-        </Box>
+      {isLoginInProgress ? (
+        <Flex justifyContent="center" alignItems="center" h="100vh">
+          <Spinner />
+        </Flex>
+      ) : (
         <Flex
-          zIndex="2"
-          direction="column"
-          w={{ base: '100%', md: '420px' }}
-          maxW="100%"
-          background="transparent"
-          borderRadius="15px"
-          mx={{ base: 'auto', lg: 'unset' }}
+          w="100%"
+          maxW="max-content"
+          mx={{ base: 'auto', lg: '0px' }}
           me="auto"
-          mb={{ base: '20px', md: 'auto' }}
+          h="100%"
+          justifyContent="center"
+          mb={{ base: '30px', md: '60px' }}
+          px={{ base: '25px', md: '0px' }}
+          mt={{ base: '40px', md: '12vh' }}
+          flexDirection="column"
         >
-          <Button
-            variant="transparent"
-            border="1px solid"
-            borderColor={borderColor}
-            borderRadius="14px"
-            ms="auto"
-            mb="30px"
-            fontSize="md"
-            w={{ base: '100%' }}
-            h="54px"
-            onClick={handleGoogleSignIn}
-          >
-            <Icon as={FcGoogle} w="20px" h="20px" me="10px" />
-            Sign in with Google
-          </Button>
-          <Flex align="center" mb="25px">
-            <HSeparator />
+          <Box me="auto">
             <Text
+              color={textColor}
+              fontSize={{ base: '34px', lg: '36px' }}
+              mb="10px"
+              fontWeight={'700'}
+            >
+              Sign In
+            </Text>
+            <Text
+              mb="36px"
+              ms="4px"
               color={textColorSecondary}
               fontWeight="500"
               fontSize="sm"
-              mx="14px"
             >
-              or
+              Enter your email and password to sign in!
             </Text>
-            <HSeparator />
-          </Flex>
-          <FormControl>
-            <FormLabel
-              cursor="pointer"
-              display="flex"
-              ms="4px"
-              htmlFor="email"
-              fontSize="sm"
-              fontWeight="500"
-              color={textColor}
-              mb="8px"
-            >
-              Email<Text color={brandStars}>*</Text>
-            </FormLabel>
-            <Input
-              isRequired={true}
-              id="email"
-              variant="auth"
-              fontSize="sm"
-              type="email"
-              placeholder="Enter your email address"
-              mb="24px"
-              size="lg"
+          </Box>
+          <Flex
+            zIndex="2"
+            direction="column"
+            w={{ base: '100%', md: '420px' }}
+            maxW="100%"
+            background="transparent"
+            borderRadius="15px"
+            mx={{ base: 'auto', lg: 'unset' }}
+            me="auto"
+            mb={{ base: '20px', md: 'auto' }}
+          >
+            <Button
+              variant="transparent"
+              border="1px solid"
               borderColor={borderColor}
+              borderRadius="14px"
+              ms="auto"
+              mb="30px"
+              fontSize="md"
+              w={{ base: '100%' }}
               h="54px"
-              fontWeight="500"
-              _placeholder={{ placeholderColor }}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            {/* PASSWORD */}
-            <FormLabel
-              cursor="pointer"
-              ms="4px"
-              fontSize="sm"
-              fontWeight="500"
-              htmlFor="pass"
-              color={textColor}
-              display="flex"
+              onClick={handleGoogleSignIn}
             >
-              Password<Text color={brandStars}>*</Text>
-            </FormLabel>
-            <InputGroup size="md">
+              <Icon as={FcGoogle} w="20px" h="20px" me="10px" />
+              Sign in with Google
+            </Button>
+            <Flex align="center" mb="25px">
+              <HSeparator />
+              <Text
+                color={textColorSecondary}
+                fontWeight="500"
+                fontSize="sm"
+                mx="14px"
+              >
+                or
+              </Text>
+              <HSeparator />
+            </Flex>
+            <FormControl>
+              <FormLabel
+                cursor="pointer"
+                display="flex"
+                ms="4px"
+                htmlFor="email"
+                fontSize="sm"
+                fontWeight="500"
+                color={textColor}
+                mb="8px"
+              >
+                Email<Text color={brandStars}>*</Text>
+              </FormLabel>
               <Input
                 isRequired={true}
+                id="email"
                 variant="auth"
-                id="pass"
                 fontSize="sm"
-                placeholder="Enter your password"
+                type="email"
+                placeholder="Enter your email address"
                 mb="24px"
                 size="lg"
                 borderColor={borderColor}
                 h="54px"
                 fontWeight="500"
                 _placeholder={{ placeholderColor }}
-                type={show ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
-              <InputRightElement display="flex" alignItems="center" mt="4px">
-                <Icon
-                  color={textColorSecondary}
-                  _hover={{ cursor: 'pointer' }}
-                  as={show ? RiEyeCloseLine : MdOutlineRemoveRedEye}
-                  onClick={handleClick}
-                />
-              </InputRightElement>
-            </InputGroup>
-            {/* CONFIRM */}
-            <Button
-              variant="primary"
-              py="20px"
-              px="16px"
-              fontSize="sm"
-              borderRadius="45px"
-              mt={{ base: '20px', md: '0px' }}
-              w="100%"
-              h="54px"
-              mb="24px"
-              onClick={handleSignIn}
-            >
-              Sign In
-            </Button>
-          </FormControl>
-          <Flex justifyContent="center" alignItems="start" maxW="100%" mt="0px">
-            <Text color={textColorDetails} fontWeight="500" fontSize="sm">
-              Not registered yet?
-            </Text>
-            <Link href="/register" py="0px" lineHeight={'120%'}>
-              <Text
-                color={textColorBrand}
+              {/* PASSWORD */}
+              <FormLabel
+                cursor="pointer"
+                ms="4px"
                 fontSize="sm"
-                as="span"
-                ms="5px"
-                fontWeight="600"
+                fontWeight="500"
+                htmlFor="pass"
+                color={textColor}
+                display="flex"
               >
-                Create an Account
+                Password<Text color={brandStars}>*</Text>
+              </FormLabel>
+              <InputGroup size="md">
+                <Input
+                  isRequired={true}
+                  variant="auth"
+                  id="pass"
+                  fontSize="sm"
+                  placeholder="Enter your password"
+                  mb="24px"
+                  size="lg"
+                  borderColor={borderColor}
+                  h="54px"
+                  fontWeight="500"
+                  _placeholder={{ placeholderColor }}
+                  type={show ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <InputRightElement display="flex" alignItems="center" mt="4px">
+                  <Icon
+                    color={textColorSecondary}
+                    _hover={{ cursor: 'pointer' }}
+                    as={show ? RiEyeCloseLine : MdOutlineRemoveRedEye}
+                    onClick={handleClick}
+                  />
+                </InputRightElement>
+              </InputGroup>
+              {error && (
+                <Text color="red.500" mb="8px" fontSize="sm">
+                  {error}
+                </Text>
+              )}
+              <Button
+                variant="primary"
+                py="20px"
+                px="16px"
+                fontSize="sm"
+                borderRadius="45px"
+                mt={{ base: '20px', md: '0px' }}
+                w="100%"
+                h="54px"
+                mb="24px"
+                onClick={handleSignIn}
+              >
+                Sign In
+              </Button>
+            </FormControl>
+            <Flex justifyContent="center" alignItems="start" maxW="100%" mt="0px">
+              <Text color={textColorDetails} fontWeight="500" fontSize="sm">
+                Not registered yet?
               </Text>
-            </Link>
+              <Link href="/register" py="0px" lineHeight={'120%'}>
+                <Text
+                  color={textColorBrand}
+                  fontSize="sm"
+                  as="span"
+                  ms="5px"
+                  fontWeight="600"
+                >
+                  Create an Account
+                </Text>
+              </Link>
+            </Flex>
           </Flex>
         </Flex>
-      </Flex>
+      )}
     </DefaultAuth>
   );
 }
