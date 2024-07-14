@@ -163,6 +163,20 @@ const routes: IRoute[] = [
     invisible: true,
     collapse: false,
   },
+  {
+    name: 'Patient Dashboard',
+    path: '/patient-dashboard',
+    icon: <Icon as={IoMdPerson} width="20px" height="20px" color="inherit" />,
+    invisible: true,
+    collapse: false,
+  },
+  {
+    name: 'Doctor Dashboard',
+    path: '/doctor-dashboard',
+    icon: <Icon as={IoMdPerson} width="20px" height="20px" color="inherit" />,
+    invisible: true,
+    collapse: false,
+  },
 ];
 
 export default routes;
