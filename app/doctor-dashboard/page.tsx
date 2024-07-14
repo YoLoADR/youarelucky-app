@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks';
 import { setUser } from '@/store/userSlice';
 import {
-  Box, Button, Stack, Text, Flex, Heading, IconButton
+  Box, Button, Stack, Text, Flex, Heading, Avatar, IconButton
 } from '@chakra-ui/react';
 import { ArrowBackIcon, ArrowForwardIcon } from '@chakra-ui/icons';
 import { mockSlots } from '@/variables/demoPlanning';
@@ -73,8 +73,19 @@ export default function DoctorDashboard() {
                 cursor="pointer"
               >
                 <Heading size="md">{slot.time}</Heading>
-                <Text>{slot.patientId}</Text>
-                <Text fontSize="sm" color="gray.500">{slot.day}</Text>
+                <Flex align="center" mt={2}>
+                  <Avatar src={slot.patientAvatar} size="sm" mr={2} />
+                  <Text>{slot.patientName}</Text>
+                </Flex>
+                <Text fontSize="sm" color="gray.500">{slot.consultationType}</Text>
+                <Flex mt={2}>
+                  {slot.practitioners.map((practitioner, idx) => (
+                    <Flex key={idx} align="center" mr={4}>
+                      <Avatar src={practitioner.avatar} size="sm" mr={2} />
+                      <Text>{practitioner.name}</Text>
+                    </Flex>
+                  ))}
+                </Flex>
               </Box>
             ))}
           </Flex>
