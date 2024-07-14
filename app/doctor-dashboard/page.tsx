@@ -1,19 +1,20 @@
+// DoctorDashboard.js
 'use client';
 import { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useAppDispatch, useAppSelector } from '@/hooks';
 import { setUser } from '@/store/userSlice';
 import {
-  Box, Button, Stack, Text, Flex, Heading, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, useDisclosure, IconButton
+  Box, Button, Stack, Text, Flex, Heading, IconButton
 } from '@chakra-ui/react';
 import { ArrowBackIcon, ArrowForwardIcon } from '@chakra-ui/icons';
+import { mockSlots } from '@/variables/demoPlanning';
+import AppointmentModal from '@/components/modals/appointmentModal';
 
 export default function DoctorDashboard() {
   const { user } = useAppSelector((state) => state.user);
   const dispatch = useAppDispatch();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [currentWeek, setCurrentWeek] = useState(0); // 0 = cette semaine, -1 = semaine dernière, 1 = semaine prochaine
   const [selectedDay, setSelectedDay] = useState('Lundi'); // Par défaut, le jour sélectionné est lundi
@@ -25,36 +26,8 @@ export default function DoctorDashboard() {
     }
   }, [user]);
 
-  const mockData = {
-    0: [
-      { time: '10:00', patient: 'John Doe', details: 'Consultation de suivi', day: 'Lundi' },
-      { time: '11:00', patient: 'Jane Smith', details: 'Nouveau patient', day: 'Lundi' },
-      { time: '09:00', patient: 'Alice Johnson', details: 'Consultation de routine', day: 'Mardi' },
-      { time: '14:00', patient: 'Bob Brown', details: 'Consultation de suivi', day: 'Mercredi' },
-      { time: '10:30', patient: 'Charlie Davis', details: 'Consultation de suivi', day: 'Jeudi' },
-      { time: '13:00', patient: 'Eve Evans', details: 'Nouveau patient', day: 'Vendredi' },
-    ],
-    1: [
-      { time: '10:00', patient: 'John Smith', details: 'Consultation de suivi', day: 'Lundi' },
-      { time: '11:00', patient: 'Jane Doe', details: 'Nouveau patient', day: 'Lundi' },
-      { time: '09:00', patient: 'Alice Brown', details: 'Consultation de routine', day: 'Mardi' },
-      { time: '14:00', patient: 'Bob Johnson', details: 'Consultation de suivi', day: 'Mercredi' },
-      { time: '10:30', patient: 'Charlie Evans', details: 'Consultation de suivi', day: 'Jeudi' },
-      { time: '13:00', patient: 'Eve Davis', details: 'Nouveau patient', day: 'Vendredi' },
-    ],
-    '-1': [
-      { time: '10:00', patient: 'John Brown', details: 'Consultation de suivi', day: 'Lundi' },
-      { time: '11:00', patient: 'Jane Johnson', details: 'Nouveau patient', day: 'Lundi' },
-      { time: '09:00', patient: 'Alice Smith', details: 'Consultation de routine', day: 'Mardi' },
-      { time: '14:00', patient: 'Bob Doe', details: 'Consultation de suivi', day: 'Mercredi' },
-      { time: '10:30', patient: 'Charlie Brown', details: 'Consultation de suivi', day: 'Jeudi' },
-      { time: '13:00', patient: 'Eve Smith', details: 'Nouveau patient', day: 'Vendredi' },
-    ],
-  };
-
   const handleSlotClick = (slot) => {
     setSelectedSlot(slot);
-    onOpen();
   };
 
   const handleWeekChange = (direction) => {
@@ -88,7 +61,7 @@ export default function DoctorDashboard() {
         </Box>
         <Box w="80%" p={4}>
           <Flex wrap="wrap">
-            {mockData[currentWeek]?.filter(slot => slot.day === selectedDay).map((slot, index) => (
+            {mockSlots[currentWeek]?.filter(slot => slot.day === selectedDay).map((slot, index) => (
               <Box
                 key={index}
                 w="300px"
@@ -100,28 +73,14 @@ export default function DoctorDashboard() {
                 cursor="pointer"
               >
                 <Heading size="md">{slot.time}</Heading>
-                <Text>{slot.patient}</Text>
+                <Text>{slot.patientId}</Text>
                 <Text fontSize="sm" color="gray.500">{slot.day}</Text>
               </Box>
             ))}
           </Flex>
         </Box>
       </Flex>
-      <Modal isOpen={isOpen} onClose={onClose} size={'xl'}>
-        <ModalOverlay />
-        <ModalContent  bg="white" maxWidth="80%">
-          <ModalHeader>Détails du Rendez-vous</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <Text>Patient : {selectedSlot?.patient}</Text>
-            <Text>Détails : {selectedSlot?.details}</Text>
-            <Text>Jour : {selectedSlot?.day}</Text>
-          </ModalBody>
-          <ModalFooter>
-            <Button onClick={onClose}>Fermer</Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
+      {selectedSlot && <AppointmentModal slot={selectedSlot} onClose={() => setSelectedSlot(null)} />}
     </Box>
   );
 }
