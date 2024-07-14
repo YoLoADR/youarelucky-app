@@ -64,7 +64,7 @@ function SignIn() {
     if (isSubActive || isTrialActive) {
       router.push('/ai-assistant');
     } else if (user && isNewComer) {
-      router.push('/my-project');
+      router.push('/my-projects');
     }
   }, [user, isSubActive, isTrialActive, isNewComer, router]);
 
