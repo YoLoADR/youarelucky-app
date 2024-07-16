@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks';
 import { setUser } from '@/store/userSlice';
 import {
-  Box, Button, Stack, Text, Flex, Heading, Avatar, IconButton
+  Box, Button, Stack, Text, Flex, Heading, Avatar, IconButton, AvatarGroup, Badge
 } from '@chakra-ui/react';
 import { ArrowBackIcon, ArrowForwardIcon } from '@chakra-ui/icons';
 import AppointmentModal from '@/components/modals/appointmentModal';
@@ -12,6 +12,13 @@ const fetchMockData = async () => {
   const response = await fetch('/api/mockSlotsAPI');
   const data = await response.json();
   return data;
+};
+
+const consultationTypeColors = {
+  '1er visite': 'blue',
+  'nouveau cas': 'green',
+  'examen complémentaire': 'yellow',
+  'suivi': 'red'
 };
 
 export default function DoctorDashboard() {
@@ -93,19 +100,28 @@ export default function DoctorDashboard() {
                 onClick={() => handleSlotClick(slot)}
                 cursor="pointer"
               >
-                <Heading size="md">{slot.time}</Heading>
+                <Flex justifyContent="space-between" alignItems="center">
+                  <Heading size="md">{slot.time}</Heading>
+                    <Badge
+                      colorScheme={consultationTypeColors[slot.consultationType]}
+                      maxW="140px"  // Définissez une largeur maximale appropriée
+                      whiteSpace="normal"
+                      textAlign="right"
+                    >
+                      {slot.consultationType}
+                    </Badge>
+                </Flex>
                 <Flex align="center" mt={2}>
                   <Avatar src={slot.patientAvatar} size="sm" mr={2} />
                   <Text>{slot.patientName}</Text>
                 </Flex>
-                <Text fontSize="sm" color="gray.500">{slot.consultationType}</Text>
-                <Flex mt={2}>
-                  {slot.practitioners.map((practitioner, idx) => (
-                    <Flex key={idx} align="center" mr={4}>
-                      <Avatar src={practitioner.avatar} size="sm" mr={2} />
-                      <Text>{practitioner.name}</Text>
-                    </Flex>
-                  ))}
+                <Flex mt={2} justifyContent="flex-end">
+                  <Text size="sm">Praticiens : </Text> 
+                  <AvatarGroup size="sm" max={2}>
+                    {slot.practitioners.map((practitioner, idx) => (
+                      <Avatar key={idx} src={practitioner.avatar} size="sm" />
+                    ))}
+                  </AvatarGroup>
                 </Flex>
               </Box>
             ))}
