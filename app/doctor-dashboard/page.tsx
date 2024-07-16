@@ -1,4 +1,3 @@
-// DoctorDashboard.js
 'use client';
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks';
@@ -7,8 +6,13 @@ import {
   Box, Button, Stack, Text, Flex, Heading, Avatar, IconButton
 } from '@chakra-ui/react';
 import { ArrowBackIcon, ArrowForwardIcon } from '@chakra-ui/icons';
-import { mockSlots } from '@/variables/demoPlanning';
 import AppointmentModal from '@/components/modals/appointmentModal';
+
+const fetchMockData = async () => {
+  const response = await fetch('/api/mockSlotsAPI');
+  const data = await response.json();
+  return data;
+};
 
 export default function DoctorDashboard() {
   const { user } = useAppSelector((state) => state.user);
@@ -18,6 +22,8 @@ export default function DoctorDashboard() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [currentWeek, setCurrentWeek] = useState(0); // 0 = cette semaine, -1 = semaine dernière, 1 = semaine prochaine
   const [selectedDay, setSelectedDay] = useState('Lundi'); // Par défaut, le jour sélectionné est lundi
+  const [mockSlots, setMockSlots] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
@@ -25,6 +31,17 @@ export default function DoctorDashboard() {
       setEmail(user.email || '');
     }
   }, [user]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      const slots = await fetchMockData();
+      setMockSlots(slots);
+      setLoading(false);
+    };
+
+    fetchData();
+  }, []);
 
   const handleSlotClick = (slot) => {
     setSelectedSlot(slot);
@@ -37,6 +54,10 @@ export default function DoctorDashboard() {
   const handleDayChange = (day) => {
     setSelectedDay(day);
   };
+
+  if (loading) {
+    return <Text>Loading...</Text>;
+  }
 
   return (
     <Box mt={{ base: '70px', md: '0px', xl: '0px' }} ml="25px">
