@@ -1,7 +1,10 @@
 // AppointmentModal.js
 import React, { useEffect, useState } from 'react';
-import { Box, Button, Text, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, useDisclosure, Tabs, TabList, Tab, TabPanels, TabPanel } from '@chakra-ui/react';
+import { Box, Button, Text, Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, useDisclosure, Tabs, TabList, Tab, TabPanels, TabPanel, Link, Checkbox, VStack } from '@chakra-ui/react';
 import { mockPatients } from '@/variables/demoPlanning';
+import AppointmentPreparationTab from '@/components/AppointmentPreparationTab'
+import AppointmentHistoryTab from '@/components/AppointmentHistoryTab'
+import ChatComponent from '@/components/chatbotDemo'
 
 const AppointmentModal = ({ slot, onClose }) => {
   const { isOpen, onOpen, onClose: close } = useDisclosure();
@@ -33,34 +36,24 @@ const AppointmentModal = ({ slot, onClose }) => {
         <ModalHeader>Détails du Rendez-vous</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-        <Tabs variant='soft-rounded' colorScheme='green'>
-          <TabList>
-            <Tab>Tab 1</Tab>
-            <Tab>Tab 2</Tab>
-            <Tab>Tab 3</Tab>
-          </TabList>
-          <TabPanels>
-            <TabPanel>
-              <Text>Heure : {slot.time}</Text>
-              <Text>Jour : {slot.day}</Text>
-              {patientDetails ? (
-                <>
-                  <Text>Patient : {patientDetails.name}</Text>
-                  <Text>Âge : {patientDetails.age}</Text>
-                  <Text>Historique Médical : {patientDetails.medicalHistory}</Text>
-                </>
-              ) : (
-                <Text>Chargement...</Text>
-              )}
-            </TabPanel>
-            <TabPanel>
-              <p>two!</p>
-            </TabPanel>
-            <TabPanel>
-              <p>three!</p>
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
+          <Tabs variant='soft-rounded' colorScheme='green'>
+            <TabList>
+              <Tab>Préparation</Tab>
+              <Tab>Historique</Tab>
+              <Tab>Chatbot</Tab>
+            </TabList>
+            <TabPanels>
+              <TabPanel>
+              <AppointmentPreparationTab></AppointmentPreparationTab>
+              </TabPanel>
+              <TabPanel>
+                <AppointmentHistoryTab></AppointmentHistoryTab>
+              </TabPanel>
+              <TabPanel>
+                <ChatComponent></ChatComponent>
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
         </ModalBody>
         <ModalFooter>
           <Button onClick={handleClose}>Fermer</Button>
