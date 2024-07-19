@@ -177,6 +177,13 @@ const routes: IRoute[] = [
     invisible: true,
     collapse: false,
   },
+  {
+    name: 'Nurse Dashboard',
+    path: '/nurse-dashboard',
+    icon: <Icon as={IoMdPerson} width="20px" height="20px" color="inherit" />,
+    invisible: true,
+    collapse: false,
+  },
 ];
 
 export default routes;
