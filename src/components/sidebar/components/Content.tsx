@@ -21,7 +21,6 @@ import { NextAvatar } from '@/components/image/Avatar';
 import Brand from '@/components/sidebar/components/Brand';
 // TODO : On utilise la version DEMO "sidebarDemo"
 import Links from '@/components/sidebarDemo/components/Links';
-import SidebarDemo from '@/components/sidebarDemo/components/SidebarCard';
 import SidebarDocs from '@/components/sidebar/components/SidebarCard';
 import { RoundedChart } from '@/components/icons/Icons';
 import { PropsWithChildren } from 'react';
@@ -92,7 +91,7 @@ function SidebarContent(props: SidebarContent) {
       </Stack>
       {!isSubActive && 
       <Box mt="60px" width={'100%'} display={'flex'} justifyContent={'center'}>
-        <SidebarDemo />
+        <SidebarDocs />
       </Box>}
       {/* "TODO : Graph de la consomation de l'utilisateur" */}
       {/* { isSubActive && <SidebarDocs /> } */}

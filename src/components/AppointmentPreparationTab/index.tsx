@@ -24,7 +24,7 @@ const AppointmentPreparationTab = () => {
   return (
     <Box>
       <Flex justifyContent="space-between" mb={4}>
-        <Button colorScheme="blue">Accéder au meeting</Button>
+        {/* <Button colorScheme="blue">Accéder au meeting</Button> */}
       </Flex>
       <Flex>
         <Stack spacing={4} w="50%">

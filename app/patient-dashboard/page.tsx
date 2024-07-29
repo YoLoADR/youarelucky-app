@@ -22,19 +22,19 @@ export default function PatientDashboard() {
     <Box mt={{ base: '70px', md: '0px', xl: '0px' }} ml="25px">
       <Tabs variant='soft-rounded' colorScheme='green'>
         <TabList>
-          <Tab>Préparation</Tab>
+          <Tab>Quick Overview </Tab>
           <Tab>Historique</Tab>
-          <Tab>Chatbot</Tab>
+          <Tab>Examen</Tab>
         </TabList>
         <TabPanels>
           <TabPanel>
-          <AppointmentPreparationTab></AppointmentPreparationTab>
+            <ChatComponent></ChatComponent>
           </TabPanel>
           <TabPanel>
             <AppointmentHistoryTab></AppointmentHistoryTab>
           </TabPanel>
           <TabPanel>
-            <ChatComponent></ChatComponent>
+            <AppointmentPreparationTab></AppointmentPreparationTab>
           </TabPanel>
         </TabPanels>
       </Tabs>

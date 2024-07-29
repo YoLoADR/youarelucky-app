@@ -19,12 +19,35 @@ import {
   Input,
   Text,
   useColorModeValue,
+  Stack,
+  Heading,
+  Checkbox,
+  IconButton,
 } from '@chakra-ui/react';
 import { useState } from 'react';
-import { MdAutoAwesome, MdBolt, MdEdit, MdPerson } from 'react-icons/md';
+import { MdAutoAwesome, MdBolt, MdEdit, MdPerson, MdMic } from 'react-icons/md';
 import { demoQuestions } from '@/variables/demoQuestion';
 import { useAppSelector, useAppDispatch } from '@/hooks';
 import { setUser } from '@/store/userSlice';
+
+// Mocked data
+const patientDetails = {
+  name: 'John Doe',
+  age: 45,
+  medicalHistory: 'Hypertension, Diabetes',
+  recentDiagnoses: 'Mild COVID-19',
+  previousNotes: 'Patient is responding well to treatment.',
+  allergies: 'Penicillin',
+  criticalMedications: 'Insulin',
+};
+
+const checklistItems = [
+  'Vérifier les résultats des derniers tests',
+  'Discuter des symptômes actuels',
+  'Réviser les prescriptions actuelles',
+  'Confirmer les prochaines étapes du traitement',
+  'Discuter des recommandations de style de vie'
+];
 
 const ChatComponent = () => {
   const dispatch = useAppDispatch();
@@ -65,6 +88,11 @@ const ChatComponent = () => {
       setOutputCode("Please log in to access the answer.");
     }
     setLoading(false);
+  };
+
+  const handleVoiceCommand = () => {
+    // Code to start voice command (you'll need to integrate with a voice recognition library or service here)
+    console.log('Voice command initiated');
   };
 
   const handleChange = (Event: any) => {
@@ -121,22 +149,41 @@ const ChatComponent = () => {
                 _hover={{ border: '0px solid', bg: 'none' }}
                 _focus={{ border: '0px solid', bg: 'none' }}
               >
-                <Box flex="1" textAlign="left">
-                  <Text color={gray} fontWeight="500" fontSize="sm">
-                    No plugins added
-                  </Text>
+                <Box flex="1">
+                  View resume
                 </Box>
                 <AccordionIcon color={gray} />
               </AccordionButton>
-              <AccordionPanel mx="auto" w="max-content" p="0px 0px 10px 0px">
-                <Text
-                  color={gray}
-                  fontWeight="500"
-                  fontSize="sm"
-                  textAlign={'center'}
+              <AccordionPanel p="0px 0px 10px 0px">
+                <Flex
+                  direction={{ base: 'column', md: 'row' }}
+                  w="100%"
+                  justify="space-between"
                 >
-                  This is a cool text example.
-                </Text>
+                  <Stack spacing={4} w={{ base: '100%', md: '50%' }}>
+                    <Box p={4} borderWidth="1px" borderRadius="lg" bg="white" boxShadow="sm">
+                      <Heading size="md" mb={2}>Résumé IA Personnalisé</Heading>
+                      <Text><strong>Nom du patient:</strong> {patientDetails.name}</Text>
+                      <Text><strong>Âge:</strong> {patientDetails.age}</Text>
+                      <Text><strong>Antécédents médicaux:</strong> {patientDetails.medicalHistory}</Text>
+                      <Text><strong>Diagnostiques récents:</strong> {patientDetails.recentDiagnoses}</Text>
+                      <Text><strong>Notes précédentes:</strong> {patientDetails.previousNotes}</Text>
+                    </Box>
+                    <Box p={4} borderWidth="1px" borderRadius="lg" bg="red.50" boxShadow="sm">
+                      <Heading size="md" mb={2}>Alerte</Heading>
+                      <Text><strong>Allergies:</strong> {patientDetails.allergies}</Text>
+                      <Text><strong>Médicaments critiques:</strong> {patientDetails.criticalMedications}</Text>
+                    </Box>
+                  </Stack>
+                  <Box p={4} borderWidth="1px" borderRadius="lg" bg="white" boxShadow="sm" w={{ base: '100%', md: '45%' }} mt={{ base: '20px', md: '0' }}>
+                    <Heading size="md" mb={2}>Checklist Interactive</Heading>
+                    {checklistItems.map((item, index) => (
+                      <Checkbox key={index} mb={2} colorScheme="green">
+                        {item}
+                      </Checkbox>
+                    ))}
+                  </Box>
+                </Flex>
               </AccordionPanel>
             </AccordionItem>
           </Accordion>
@@ -246,6 +293,23 @@ const ChatComponent = () => {
             _placeholder={placeholderColor}
             placeholder="Type your message here..."
             onChange={handleChange}
+          />
+          <IconButton
+            aria-label="Start voice command"
+            icon={<MdMic />}
+            onClick={handleVoiceCommand}
+            size="lg"
+            isRound
+            colorScheme="teal"
+            bg="white"
+            color="black"
+            _hover={{ bg: "gray.200" }}
+            _active={{ bg: "gray.300" }}
+            fontSize="2xl"
+            p="24px"
+            minW="60px"
+            minH="60px"
+            me="10px"
           />
           <Button
             variant="primary"
