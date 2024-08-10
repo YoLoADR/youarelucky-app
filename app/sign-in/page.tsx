@@ -1,74 +1,65 @@
 'use client';
 
-// Chakra imports
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Button,
-  Checkbox,
   Flex,
   FormControl,
   FormLabel,
   Icon,
-  Link,
   Input,
   InputGroup,
   InputRightElement,
   Text,
   useColorModeValue,
   useToast,
+  Link,
 } from '@chakra-ui/react';
-import illustration from '/public/img/auth/auth.png';
-import { HSeparator } from '@/components/separator/Separator';
-import DefaultAuth from '@/components/auth';
-import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { FcGoogle } from 'react-icons/fc';
 import { MdOutlineRemoveRedEye } from 'react-icons/md';
 import { RiEyeCloseLine } from 'react-icons/ri';
-import { auth, db } from '@/firebase';
 import firebase from 'firebase/compat/app';
-import { useRouter } from 'next/navigation';
-import { useAppDispatch, useAppSelector } from '@/hooks';
-import { setUser, updateSubscription } from '@/store/userSlice';
+import { auth, db } from '@/firebase'; // Assurez-vous d'importer firebase correctement
+import useUserStore from '@/store/userStore';
 import Spinner from '@/components/Spinner'; // Assurez-vous d'avoir un composant Spinner pour indiquer le chargement
+import DefaultAuth from '@/components/auth';
+import illustration from '/public/img/auth/auth.png';
 
-const googleProvider = new firebase.auth.GoogleAuthProvider();
+const googleProvider = new firebase.auth.GoogleAuthProvider(); // Initialisation du provider Google
 
 function SignIn() {
-  // Chakra color mode
   const textColor = useColorModeValue('navy.700', 'white');
   const textColorSecondary = 'gray.500';
   const textColorDetails = useColorModeValue('navy.700', 'gray.500');
   const textColorBrand = useColorModeValue('brand.500', 'white');
-  const brandStars = useColorModeValue('brand.500', 'brand.400');
   const borderColor = useColorModeValue('gray.200', 'whiteAlpha.200');
   const placeholderColor = useColorModeValue(
     { color: 'gray.500', fontWeight: '500' },
     { color: 'whiteAlpha.600', fontWeight: '500' },
   );
-  const [show, setShow] = useState(false);
-  const handleClick = () => setShow(!show);
 
+  const [show, setShow] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState(false);
   const [isLoginInProgress, setLoginInProgress] = useState(false);
   const [error, setError] = useState('');
-
-  const dispatch = useAppDispatch();
+  const setUser = useUserStore((state) => state.setUser);
   const router = useRouter();
-  const { user, isSubActive, isTrialActive, isNewComer } = useAppSelector((state) => state.user);
   const toast = useToast();
 
-  // Listening to Redux store user changes
   useEffect(() => {
-    if (isSubActive || isTrialActive) {
-      router.push('/ai-assistant');
-    } else if (user && isNewComer) {
+    // Redirect if user is already signed in
+    const currentUser = auth.currentUser;
+    if (currentUser) {
       router.push('/my-projects');
     }
-  }, [user, isSubActive, isTrialActive, isNewComer, router]);
+  }, [router]);
 
-  // Gestion de la connexion Google
+  const handleClick = () => setShow(!show);
+
   const handleGoogleSignIn = async () => {
     try {
       setLoginInProgress(true);
@@ -109,34 +100,24 @@ function SignIn() {
     }
   };
 
-  // Fonction pour créer ou récupérer les informations de l'utilisateur dans Firebase
   const handleUserCreation = async (firebaseUser) => {
-    const { displayName, phoneNumber, photoURL, uid, providerData, email } = firebaseUser;
-    const userDocRef = db.collection('customers').doc(uid);
-    const userDocSnapshot = await userDocRef.get();
-
-    let subscriptionsData = [];
-    if (userDocSnapshot.exists) {
-      const subscriptionsSnapshot = await userDocRef.collection('subscriptions')
-        .where('status', 'in', ['trialing', 'active'])
-        .get();
-
-      subscriptionsSnapshot.forEach(doc => {
-        subscriptionsData.push(doc.data());
-      });
+    try {
+      const userDoc = await db.collection('users').doc(firebaseUser.uid).get();
+      if (userDoc.exists) {
+        const userData = userDoc.data();
+        setUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          ...userData,
+        });
+        router.push('/my-projects');
+      } else {
+        throw new Error('User data does not exist');
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      setError('Failed to retrieve user data. Please try again.');
     }
-
-    const userdata = {
-      email,
-      displayName,
-      phoneNumber,
-      photoURL,
-      uid,
-      providerData,
-      subscriptions: subscriptionsData,
-    };
-    dispatch(setUser(userdata));
-    dispatch(updateSubscription(subscriptionsData));
   };
 
   return (
@@ -204,7 +185,6 @@ function SignIn() {
               Sign in with Google
             </Button>
             <Flex align="center" mb="25px">
-              <HSeparator />
               <Text
                 color={textColorSecondary}
                 fontWeight="500"
@@ -213,7 +193,6 @@ function SignIn() {
               >
                 or
               </Text>
-              <HSeparator />
             </Flex>
             <FormControl>
               <FormLabel
@@ -226,7 +205,7 @@ function SignIn() {
                 color={textColor}
                 mb="8px"
               >
-                Email<Text color={brandStars}>*</Text>
+                Email<Text color={textColorBrand}>*</Text>
               </FormLabel>
               <Input
                 isRequired={true}
@@ -244,7 +223,6 @@ function SignIn() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
-              {/* PASSWORD */}
               <FormLabel
                 cursor="pointer"
                 ms="4px"
@@ -254,7 +232,7 @@ function SignIn() {
                 color={textColor}
                 display="flex"
               >
-                Password<Text color={brandStars}>*</Text>
+                Password<Text color={textColorBrand}>*</Text>
               </FormLabel>
               <InputGroup size="md">
                 <Input
@@ -306,7 +284,7 @@ function SignIn() {
               <Text color={textColorDetails} fontWeight="500" fontSize="sm">
                 Not registered yet?
               </Text>
-              <Link href="/register" py="0px" lineHeight={'120%'}>
+              <Link href="/sign-up" py="0px" lineHeight={'120%'}>
                 <Text
                   color={textColorBrand}
                   fontSize="sm"

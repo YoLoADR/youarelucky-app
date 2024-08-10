@@ -1,6 +1,8 @@
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth"; // Import pour l'authentification
 import "firebase/compat/firestore"; // Import pour Google Analytics
+import 'firebase/compat/storage';
+
 
 // Configuration de Firebase
 const firebaseConfig = {
@@ -24,4 +26,5 @@ if (!firebase.apps.length) {
 // Services Firebase
 export const db = firebase.firestore();
 export const auth = firebase.auth();
+export const storage = firebase.storage();
 

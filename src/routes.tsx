@@ -80,8 +80,8 @@ const routes: IRoute[] = [
     collapse: false,
   },
   {
-    name: 'Register',
-    path: '/register',
+    name: 'Sign Up',
+    path: '/sign-up',
     icon: <Icon as={RoundedChart} width="20px" height="20px" color="inherit" />,
     invisible: true,
     collapse: false,
@@ -180,6 +180,13 @@ const routes: IRoute[] = [
   {
     name: 'Nurse Dashboard',
     path: '/nurse-dashboard',
+    icon: <Icon as={IoMdPerson} width="20px" height="20px" color="inherit" />,
+    invisible: true,
+    collapse: false,
+  },
+  {
+    name: 'Fill Your Profile',
+    path: '/fill-your-profile',
     icon: <Icon as={IoMdPerson} width="20px" height="20px" color="inherit" />,
     invisible: true,
     collapse: false,

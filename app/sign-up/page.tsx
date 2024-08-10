@@ -26,8 +26,7 @@ import { RiEyeCloseLine } from 'react-icons/ri';
 import { auth, db } from '@/firebase';
 import firebase from 'firebase/compat/app';
 import { useRouter } from 'next/navigation';
-import { useAppDispatch, useAppSelector } from '@/hooks';
-import { setUser } from '@/store/userSlice';
+import useUserStore from '@/store/userStore';
 
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 
@@ -54,29 +53,26 @@ function SignUp() {
   const [emailError, setEmailError] = useState(false);
   const [isLoginInProgress, setLoginInProgress] = useState(false);
 
-  const dispatch = useAppDispatch();
+  const setUser = useUserStore((state) => state.setUser);
   const router = useRouter();
-  const { user, isSubActive, isTrialActive } = useAppSelector((state) => state.user);
+  const user = useUserStore((state) => state.user);
 
-  //Listening redux store to user changes
+  // Listening to user state changes
   useEffect(() => {
-    if (isSubActive && isTrialActive) {
-      console.log('User is present, redirecting to /ai-assistant', `isSubActive : ${isSubActive} isTrialActive : ${isTrialActive}`);
-      router.push('/ai-assistant');
-    } else if (user) {
-      console.log('Subscription and trial are active, redirecting to /ai-assistant, user :', user);
-      router.push('/ai-assistant');
+    if (user) {
+      console.log('User signed up and logged in, redirecting to /fill-your-profile:', user);
+      router.push('/fill-your-profile');
     }
-  }, [user, isSubActive, isTrialActive, router]);
+  }, [user, router]);
 
-  // Gestion de la connexion Google
+  // Google Sign-In
   const handleGoogleSignIn = async () => {
     try {
       setLoginInProgress(true);
       const result = await auth.signInWithPopup(googleProvider);
-      const user = result.user;
-      console.log('Google Sign-In User:', user);
-      await handleUserCreation(user);
+      const firebaseUser = result.user;
+      console.log('Google Sign-In User:', firebaseUser);
+      await handleUserCreation(firebaseUser);
     } catch (error) {
       console.error('Google Sign-In Error:', error);
     } finally {
@@ -84,6 +80,7 @@ function SignUp() {
     }
   };
 
+  // Email and Password Sign-Up
   const handleSignUp = async () => {
     if (!email || !password) {
       setEmailError(true);
@@ -92,9 +89,9 @@ function SignUp() {
     try {
       setLoginInProgress(true);
       const result = await auth.createUserWithEmailAndPassword(email, password);
-      const user = result.user;
-      console.log('User signed up and signed in: ', user, "Name :", name, "Email :", user.email);
-      await handleUserCreation(user);
+      const firebaseUser = result.user;
+      console.log('User signed up and signed in: ', firebaseUser, "Name :", name, "Email :", firebaseUser.email);
+      await handleUserCreation(firebaseUser);
     } catch (error) {
       console.error('Sign up error: ', error);
       setEmail('');
@@ -104,7 +101,7 @@ function SignUp() {
     }
   };
 
-  // Fonction pour créer ou récupérer les informations de l'utilisateur dans Firebase
+  // Handle User Creation in Firebase and Store
   const handleUserCreation = async (firebaseUser) => {
     const { displayName, phoneNumber, photoURL, uid, providerData, email } = firebaseUser;
     const userdata = {
@@ -116,7 +113,7 @@ function SignUp() {
       providerData,
     };
     console.log("User data:", userdata);
-    dispatch(setUser(userdata));
+    setUser(userdata);
   };
 
   return (
@@ -349,7 +346,7 @@ function SignUp() {
               h="54px"
               mb="24px"
               isDisabled={!isChecked}
-              onClick={() => handleSignUp()}
+              onClick={handleSignUp}
             >
               Create your Account
             </Button>
