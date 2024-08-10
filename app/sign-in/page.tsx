@@ -54,7 +54,7 @@ function SignIn() {
     // Redirect if user is already signed in
     const currentUser = auth.currentUser;
     if (currentUser) {
-      router.push('/my-projects');
+      router.push('/appointment');
     }
   }, [router]);
 
@@ -110,7 +110,7 @@ function SignIn() {
           email: firebaseUser.email,
           ...userData,
         });
-        router.push('/my-projects');
+        router.push('/appointement');
       } else {
         throw new Error('User data does not exist');
       }

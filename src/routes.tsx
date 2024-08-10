@@ -16,8 +16,8 @@ import { IRoute } from './types/navigation';
 
 const routes: IRoute[] = [
   {
-    name: 'My Projects',
-    path: '/my-projects',
+    name: 'My Appointment',
+    path: '/appointment',
     icon: <Icon as={MdLayers} width="20px" height="20px" color="inherit" />,
     accessibleDuringTrial: true, 
     requiresPremium: false,
@@ -27,6 +27,13 @@ const routes: IRoute[] = [
     path: '/ai-assistant',
     icon: <MdAssistant className="-mt-[7px] h-5 w-5 text-inherit" />,
     collapse: false,
+    accessibleDuringTrial: true, 
+    requiresPremium: false,
+  },
+  {
+    name: 'TestManageAppointment',
+    path: '/testManageAppointment',
+    icon: <Icon as={LuHistory} width="20px" height="20px" color="inherit" />,
     accessibleDuringTrial: true, 
     requiresPremium: false,
   },

@@ -19,9 +19,7 @@ import NavLink from '@/components/link/NavLink';
 import avatarEmpty from '/public/img/avatars/avatar_empty.png';
 import { NextAvatar } from '@/components/image/Avatar';
 import Brand from '@/components/sidebar/components/Brand';
-// TODO : On utilise la version DEMO "sidebarDemo"
 import Links from '@/components/sidebarDemo/components/Links';
-import SidebarDocs from '@/components/sidebar/components/SidebarCard';
 import { RoundedChart } from '@/components/icons/Icons';
 import { PropsWithChildren } from 'react';
 import { IRoute } from '@/types/navigation';
@@ -34,7 +32,6 @@ import { useAppDispatch, useAppSelector } from '@/hooks';
 import { auth } from '@/firebase';
 import { setUser } from '@/store/userSlice';
 import routes from '@/routes';
-import routesDemo from '@/routesDemo';
 
 interface SidebarContent extends PropsWithChildren {
   routes: IRoute[];
@@ -86,16 +83,9 @@ function SidebarContent(props: SidebarContent) {
       <Brand />
       <Stack direction="column" mb="auto" mt="8px">
         <Box ps="0px" pe={{ md: '0px', '2xl': '0px' }}>
-          <Links isSubActive={isSubActive} isTrialActive={isTrialActive} routes={(isSubActive || isTrialActive) ? routes : routesDemo} />
+          <Links isSubActive={isSubActive} isTrialActive={isTrialActive} routes={routes} />
         </Box>
       </Stack>
-      {!isSubActive && 
-      <Box mt="60px" width={'100%'} display={'flex'} justifyContent={'center'}>
-        <SidebarDocs />
-      </Box>}
-      {/* "TODO : Graph de la consomation de l'utilisateur" */}
-      {/* { isSubActive && <SidebarDocs /> } */}
-      {/* <APIModal setApiKey={setApiKey} sidebar={true} /> */}
       <Flex
         mt="8px"
         justifyContent="center"

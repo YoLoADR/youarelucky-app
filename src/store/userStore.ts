@@ -10,10 +10,24 @@ interface UserState {
 }
 
 const useUserStore = create<UserState>((set) => ({
-  user: null,
+  user: {
+    fullName: '',
+    email: '',
+    nickname: '',
+    phoneNumber: '',
+    photoURL:'',
+    gender:'other',
+    dateOfBirth:'',
+    region: '', // Add region here
+  },
+  setUser: (userData) => set((state) => ({
+    user: {
+      ...state.user,
+      ...userData,
+    }
+  })),
   subscriptions: [],
   isLoading: false,
-  setUser: (user) => set({ user }),
   setSubscriptions: (subscriptions) => set({ subscriptions }),
   setLoading: (isLoading) => set({ isLoading }),
 }));
