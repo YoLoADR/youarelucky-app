@@ -13,6 +13,7 @@ import {
   Button,
 } from '@chakra-ui/react';
 import Card from '@/components/card/Card';
+import { faker } from '@faker-js/faker';
 
 const daysOfWeek = [
   { name: 'SUN', label: 'Sunday' },
@@ -41,7 +42,6 @@ export default function WeeklyHoursCard({ onScheduleChange }) {
   );
 
   useEffect(() => {
-    // Transform the schedule into a simpler format and pass it to the parent via onScheduleChange
     const simplifiedSchedule = daysOfWeek.reduce((acc, day) => {
       if (schedule[day.name].checked) {
         acc[day.name] = schedule[day.name].slots.filter(
@@ -98,6 +98,63 @@ export default function WeeklyHoursCard({ onScheduleChange }) {
         slots: updatedSlots,
       },
     }));
+  };
+
+  // Function to generate all hours within a time range
+  const generateTimeRange = (start, end) => {
+    const times = [];
+    let currentHour = parseInt(start.split(':')[0]);
+    const endHour = parseInt(end.split(':')[0]);
+
+    while (currentHour <= endHour) {
+      times.push({ startTime: `${currentHour.toString().padStart(2, '0')}:00`, available: true });
+      currentHour++;
+    }
+
+    return times;
+  };
+
+  // Function to generate the final schedule in the desired format
+  const generateFinalSchedule = () => {
+    const finalSchedule = [];
+    daysOfWeek.forEach((day) => {
+      if (schedule[day.name].checked) {
+        const availableTimes = schedule[day.name].slots.flatMap((slot) => {
+          let times = [];
+          if (slot.morning && slot.afternoon) {
+            times = generateTimeRange(slot.morning, slot.afternoon);
+          } else if (slot.morning) {
+            times.push({ startTime: slot.morning, available: true });
+          } else if (slot.afternoon) {
+            times.push({ startTime: slot.afternoon, available: true });
+          }
+          return times;
+        });
+        if (availableTimes.length > 0) {
+          finalSchedule.push({
+            id: faker.datatype.uuid(),
+            doctorId: faker.datatype.uuid(),
+            date: new Date().toISOString().split('T')[0],
+            availableTimes: availableTimes,
+          });
+        }
+      }
+    });
+    return finalSchedule;
+  };
+
+  // Function to download the generated schedule as a JSON file
+  const downloadScheduleAsJson = () => {
+    const finalSchedule = generateFinalSchedule();
+    const dataStr = JSON.stringify(finalSchedule, null, 4);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
+    const exportFileDefaultName = 'schedule.json';
+
+    let linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
   };
 
   return (
@@ -173,6 +230,9 @@ export default function WeeklyHoursCard({ onScheduleChange }) {
           )}
         </Flex>
       ))}
+      <Button onClick={downloadScheduleAsJson} mt={4} colorScheme="blue">
+        Download Schedule as JSON
+      </Button>
     </Card>
   );
 }
