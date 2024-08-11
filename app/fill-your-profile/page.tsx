@@ -15,17 +15,16 @@ import {
 } from '@chakra-ui/react';
 import { useRouter } from 'next/navigation';
 import useUserStore from '@/store/userStore';
-import { auth, db, storage } from '@/firebase';
+import { auth, db } from '@/firebase';
 
 const FillYourProfile = () => {
   const { user, setUser } = useUserStore();
-  const [image, setImage] = useState<File | null>(null);
-  const [imageURL, setImageURL] = useState(user?.photoURL || '');
+  const [image, setImage] = useState(user?.photoURL || '');
   const [fullName, setFullName] = useState(user?.fullName || '');
   const [nickname, setNickname] = useState(user?.nickname || '');
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
   const [selectedRegion, setSelectedRegion] = useState(user?.region || '');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const toast = useToast();
   const router = useRouter();
 
@@ -53,29 +52,21 @@ const FillYourProfile = () => {
   }, [error, toast]);
 
   const pickImage = async () => {
+    // Utilisation d'un input de fichier pour le web
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
     fileInput.onchange = () => {
       if (fileInput.files && fileInput.files.length > 0) {
         const file = fileInput.files[0];
-        setImage(file);
         const reader = new FileReader();
         reader.onloadend = () => {
-          setImageURL(reader.result as string);
+          setImage(reader.result as string);
         };
         reader.readAsDataURL(file);
       }
     };
     fileInput.click();
-  };
-
-  const uploadImageToStorage = async (file: File, uid: string): Promise<string> => {
-    const storageRef = storage.ref();
-    const fileRef = storageRef.child(`profileImages/${uid}/${file.name}`);
-    await fileRef.put(file);
-    const downloadURL = await fileRef.getDownloadURL();
-    return downloadURL;
   };
 
   const handleContinue = async () => {
@@ -91,29 +82,17 @@ const FillYourProfile = () => {
     }
 
     const currentUser = auth.currentUser;
-    if (!currentUser) {
-      setError("User not authenticated. Please sign in again.");
-      return;
-    }
-
-    let finalImageURL = imageURL;
+    const userData = {
+      fullName,
+      nickname,
+      phoneNumber,
+      region: selectedRegion,
+      photoURL: image,
+    };
 
     try {
-      if (image) {
-        finalImageURL = await uploadImageToStorage(image, currentUser.uid);
-      }
-
-      const userData = {
-        fullName,
-        nickname,
-        phoneNumber,
-        region: selectedRegion,
-        photoURL: finalImageURL,
-      };
-
       await db.collection('users').doc(currentUser.uid).set(userData, { merge: true });
-      setUser(userData);
-
+      setUser(userData); // Mettre à jour Zustand store
       toast({
         title: 'Profile Updated',
         description: 'Your profile has been updated successfully!',
@@ -121,8 +100,7 @@ const FillYourProfile = () => {
         duration: 5000,
         isClosable: true,
       });
-
-      router.push('/sign-in');
+      router.push('/dashboard');
     } catch (error) {
       setError(error.message);
     }
@@ -136,7 +114,7 @@ const FillYourProfile = () => {
         </Text>
         <FormControl mb={4}>
           <Flex direction="column" align="center" mb={4}>
-            <Avatar size="xl" src={imageURL} />
+            <Avatar size="xl" src={image || user?.photoURL} />
             <Button mt={2} onClick={pickImage}>
               Upload Image
             </Button>

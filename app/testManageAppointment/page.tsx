@@ -1,13 +1,12 @@
-'use client';  // Ajoute cette ligne en haut du fichier pour marquer ce composant comme un Client Component
+'use client';  // Marque ce composant comme un Client Component
 
 import React, { useState } from 'react';
 import { Box, Text, Button, Spinner, useToast, VStack } from '@chakra-ui/react';
 import useManageAppointment from '@/hooks/useManageAppointment';
-import useUserStore from '@/store/userStore';
-import { useRouter } from 'next/navigation';  // Utilise next/navigation au lieu de next/router
+import { useRouter } from 'next/navigation';  // Utilise useRouter de next/navigation
 
 const TestManageAppointment = () => {
-//   const { user } = useUserStore();
+  // Utilisation des hooks de manière constante
   const {
     addAppointmentAndMarkDoctorBusy,
     cancelAppointmentAndMarkDoctorAvailable,
@@ -16,10 +15,12 @@ const TestManageAppointment = () => {
     isLoading,
     error,
   } = useManageAppointment();
+
   const [appointmentId, setAppointmentId] = useState(null);
   const toast = useToast();
-  const router = useRouter();  // Utilise le hook useRouter pour la navigation
+  const router = useRouter();  // Utilisation de useRouter pour la navigation
 
+  // Informations statiques ou mockées
   const selectedDoctor = {
     id: 'b07c2380-4332-48e0-aca1-2265e49e135a',
     fullName: 'Dr. Ravino Lena',
@@ -27,7 +28,7 @@ const TestManageAppointment = () => {
     speciality: 'Cardiologist',
     address: '123 Main St, City, Country'
   };
-
+  
   const selectedDate = '2024-11-21';
   const selectedHour = '8:00';
   const newDate = '2024-11-21';
@@ -54,7 +55,7 @@ const TestManageAppointment = () => {
     address: '456 Elm St, City, Country'
   };
 
-
+  // Gestion de la création d'un rendez-vous
   const handleAddAppointment = async () => {
     const appointment = await addAppointmentAndMarkDoctorBusy(
       selectedDoctor,
@@ -64,6 +65,7 @@ const TestManageAppointment = () => {
       user,
       selectedPackage
     );
+
     if (appointment) {
       setAppointmentId(appointment.id);
       toast({
@@ -84,23 +86,18 @@ const TestManageAppointment = () => {
     }
   };
 
+  // Gestion de l'annulation d'un rendez-vous
   const handleCancelAppointment = async () => {
-    if (!appointmentId) {
-      toast({
-        title: 'Error',
-        description: 'No appointment ID found. Please create an appointment first.',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-      return;
-    }
 
     const result = await cancelAppointmentAndMarkDoctorAvailable(
+      appointmentId,
       selectedDoctor.id,
       selectedDate,
       selectedHour
     );
+
+    console.log("result", result)
+
     if (result) {
       toast({
         title: 'Success',
@@ -120,6 +117,7 @@ const TestManageAppointment = () => {
     }
   };
 
+  // Gestion du report d'un rendez-vous
   const handleRescheduleAppointment = async () => {
     const result = await rescheduleAppointment(
       selectedDoctor.id,
@@ -132,7 +130,10 @@ const TestManageAppointment = () => {
       user,
       patientDetails
     );
+
     if (result) {
+    await handleGetUserAppointments(); // Fonction pour récupérer les rendez-vous de l'utilisateur
+
       toast({
         title: 'Success',
         description: 'Appointment successfully rescheduled.',
@@ -151,8 +152,10 @@ const TestManageAppointment = () => {
     }
   };
 
+  // Récupération des rendez-vous de l'utilisateur
   const handleGetUserAppointments = async () => {
     const appointments = await getUserAppointments(user.uid);
+
     if (appointments.length > 0) {
       toast({
         title: 'Success',
@@ -173,8 +176,9 @@ const TestManageAppointment = () => {
     }
   };
 
+  // Gestion de la navigation pour rejoindre un appel vidéo
   const handleJoinVideoCall = () => {
-    router.push('/video-call');  // Utilise router.push pour rediriger vers la page du vidéo call
+    router.push('/video-call');  // Redirige vers la page du vidéo call
   };
 
   return (

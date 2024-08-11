@@ -1,38 +1,274 @@
 'use client';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 // Chakra imports
-import { Box, Flex, SimpleGrid } from '@chakra-ui/react';
+import {
+  Box,
+  Flex,
+  FormControl,
+  SimpleGrid,
+  useColorModeValue,
+  Select,
+  Text,
+  Button,
+  useToast,
+} from '@chakra-ui/react';
 import { useAppSelector } from '@/hooks';
-
-import Info from '@/components/settings/Info';
-import Password from '@/components/settings/Password';
-import Profile from '@/components/settings/Profile';
-import Socials from '@/components/settings/Socials';
-import Delete from '@/components/settings/Delete';
+import Card from '@/components/card/Card';
+import InputField from '@/components/fields/InputField';
+import TextField from '@/components/fields/TextField';
+import WeeklyHoursCard from '@/components/weeklyHoursCard'
+import { NextAvatar } from '@/components/image/Avatar';
 import avatarEmpty from '../../public/img/avatars/avatar_empty.png';
+import useUserStore from '@/store/userStore';
+import { auth, db, storage } from '@/firebase';
 
 export default function Settings() {
-  const { user } = useAppSelector((state) => state.user);
+  const { user, setUser } = useUserStore();
+  const textColorPrimary = useColorModeValue('navy.700', 'white');
+  const textColorSecondary = 'gray.500';
+  const toast = useToast();
+
+  useEffect(() => {
+    if (user) {
+      console.log("user : ",user)
+    }
+  }, [user]);
+
+  // State Variables
+  const [specialty, setSpecialty] = useState(user?.specialty || '');
+  const [experience, setExperience] = useState(user?.experience || '');
+  const [address, setAddress] = useState(user?.address || '');
+  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
+  const [region, setRegion] = useState(user?.region || '');
+  const [workingTime, setWorkingTime] = useState(user?.workingTime || '');
+  const [about, setAbout] = useState(user?.about || '');
+  const [feeMessaging, setFeeMessaging] = useState(user?.fee?.messaging || '');
+  const [feeVoiceCall, setFeeVoiceCall] = useState(user?.fee?.voiceCall || '');
+  const [feeVideoCall, setFeeVideoCall] = useState(user?.fee?.videoCall || '');
+  const [feeInPerson, setFeeInPerson] = useState(user?.fee?.inPerson || '');
+  const [feeThirdParty, setFeeThirdParty] = useState(user?.fee?.thirdParty || '');
+  const [image, setImage] = useState<File | null>(null);
+  const [imageURL, setImageURL] = useState(user?.photoURL || '');
+
+  const regionOptions = [
+    'France',
+    'Ghana',
+    'India',
+    'Kenya',
+    'Nigeria',
+    'South Africa',
+    'United States',
+    'United Kingdom',
+  ];
+
+  const pickImage = async () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.onchange = () => {
+      if (fileInput.files && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        setImage(file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImageURL(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    fileInput.click();
+  };
+
+  const uploadImageToStorage = async (file: File, uid: string): Promise<string> => {
+    const storageRef = storage.ref();
+    const fileRef = storageRef.child(`profileImages/${uid}/${file.name}`);
+    await fileRef.put(file);
+    const downloadURL = await fileRef.getDownloadURL();
+    return downloadURL;
+  };
+
+  const handleSave = async () => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      toast({
+        title: 'Error',
+        description: 'User not authenticated. Please sign in again.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    let finalImageURL = imageURL;
+
+    try {
+      if (image) {
+        finalImageURL = await uploadImageToStorage(image, currentUser.uid);
+      }
+
+      const updatedData = {
+        ...(specialty && { specialty }),
+        ...(experience && { experience }),
+        ...(address && { address }),
+        ...(phoneNumber && { phoneNumber }),
+        ...(region && { region }),
+        ...(workingTime && { workingTime }),
+        ...(about && { about }),
+        ...(finalImageURL && { photoURL: finalImageURL }),
+        fee: {
+          ...(feeMessaging && { messaging: feeMessaging }),
+          ...(feeVoiceCall && { voiceCall: feeVoiceCall }),
+          ...(feeVideoCall && { videoCall: feeVideoCall }),
+          ...(feeInPerson && { inPerson: feeInPerson }),
+          ...(feeThirdParty && { thirdParty: feeThirdParty }),
+        },
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Update only the fields that have values
+      await db.collection('users').doc(currentUser.uid).set(updatedData, { merge: true });
+
+      // Update Zustand store
+      setUser((prevUser) => ({
+        ...prevUser,
+        ...updatedData,
+      }));
+
+      toast({
+        title: 'Profile Updated',
+        description: 'Your profile has been updated successfully!',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    }
+  };
 
   return (
     <Box mt={{ base: '70px', md: '0px', xl: '0px' }}>
       <SimpleGrid columns={{ sm: 1, lg: 2 }} spacing="20px" mb="20px">
         {/* Column Left */}
         <Flex direction="column">
-          <Profile
-            name={user?.first_name ? `${user.first_name} ${user.last_name && user.last_name}` : "Username"}
-            avatar={user?.picture ? user?.picture : avatarEmpty} 
-            banner={'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%)'}
-          />
-          <Info />
+          <Flex direction="column" gap="30px">
+            <Card mb="20px" alignItems="center">
+              <Flex bg={'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%)'} w="100%" h="129px" borderRadius="16px" />
+              <NextAvatar mx="auto" src={user.photoURL ? user.photoURL : avatarEmpty} h="87px" w="87px" mt="-43px" mb="15px" />
+              <Button mt={2} onClick={pickImage}>
+                Upload Image
+              </Button>
+              <Flex align="center" mx="auto" px="14px" mb="20px">
+                <Text color={textColorSecondary} fontSize="sm" fontWeight="500" lineHeight="100%">
+                  Select Specialty :
+                </Text>
+                <Select
+                  ms="-4px"
+                  w="unset"
+                  h="100%"
+                  variant="transparent"
+                  display="flex"
+                  textColor={textColorPrimary}
+                  color={textColorPrimary}
+                  alignItems="center"
+                  value={specialty}
+                  onChange={(e) => setSpecialty(e.target.value)}
+                >
+                  <option value="Generalist">Generalist</option>
+                  <option value="Ophthalmo">Ophthalmo</option>
+                  <option value="Nutritionist">Nutritionist</option>
+                  <option value="Neurologist">Neurologist</option>
+                  <option value="Pediatric">Pediatric</option>
+                  <option value="Radiologist">Radiologist</option>
+                  <option value="Others">Others</option>
+                </Select>
+              </Flex>
+            </Card>
+          </Flex>
+          <FormControl>
+            <Card>
+              <Flex direction="column" mb="40px">
+                <Text fontSize="xl" color={textColorPrimary} mb="6px" fontWeight="bold">
+                  Account Settings
+                </Text>
+                <Text fontSize="md" fontWeight="500" color={textColorSecondary}>
+                  Here you can change user account information
+                </Text>
+              </Flex>
+              <SimpleGrid columns={{ sm: 1, md: 2 }} spacing={{ base: '20px', xl: '20px' }}>
+                <InputField mb="10px" me="30px" id="first_name" label="First Name" placeholder="Adela" value={user?.firstName} />
+                <InputField mb="10px" id="last_name" label="Last Name" placeholder="Parkson" value={user?.lastName} />
+                <InputField mb="10px" me="30px" id="email" label="Email Address" placeholder="hello@youarelucky.ai" value={user?.email} />
+                <InputField mb="20px" id="username" label="Username" placeholder="@parkson.adela" value={user?.username} />
+              </SimpleGrid>
+              <TextField id="about" label="About Me" minH="150px" placeholder="Tell something about yourself in 150 characters!" value={about} onChange={(e) => setAbout(e.target.value)} />
+            </Card>
+          </FormControl>
+          <Box mt="25px">
+            <WeeklyHoursCard />
+          </Box>
         </Flex>
         {/* Column Right */}
         <Flex direction="column" gap="20px">
-          <Socials />
-          <Password />
+          <FormControl>
+            <Card mb="20px" pb="50px" h="100%">
+              <Flex direction="column" mb="40px">
+                <Text fontSize="xl" color={textColorPrimary} mb="6px" fontWeight="bold">
+                  Consultation Fees
+                </Text>
+                <Text fontSize="md" fontWeight="500" color={textColorSecondary}>
+                  Please enter your consultation fees for each service.
+                </Text>
+              </Flex>
+              <InputField mb="25px" id="fee_messaging" label="Messaging Fee" placeholder="Enter fee for messaging consultation" type="number" value={feeMessaging} onChange={(e) => setFeeMessaging(Number(e.target.value))} />
+              <InputField mb="25px" id="fee_voice_call" label="Voice Call Fee" placeholder="Enter fee for voice call consultation" type="number" value={feeVoiceCall} onChange={(e) => setFeeVoiceCall(Number(e.target.value))} />
+              <InputField mb="25px" id="fee_video_call" label="Video Call Fee" placeholder="Enter fee for video call consultation" type="number" value={feeVideoCall} onChange={(e) => setFeeVideoCall(Number(e.target.value))} />
+              <InputField mb="25px" id="fee_in_person" label="In-Person Consultation Fee" placeholder="Enter fee for in-person consultation" type="number" value={feeInPerson} onChange={(e) => setFeeInPerson(Number(e.target.value))} />
+              <InputField mb="25px" id="fee_third_party" label="Third-Party Consultation Fee" placeholder="Enter fee for consultation with third-party assistance (e.g., interpreter or nurse)" type="number" value={feeThirdParty} onChange={(e) => setFeeThirdParty(Number(e.target.value))} />
+            </Card>
+          </FormControl>
+          <FormControl>
+            <Card>
+              <Flex direction="column" mb="40px">
+                <Text fontSize="xl" color={textColorPrimary} mb="6px" fontWeight="bold">
+                  Professional Information
+                </Text>
+                <Text fontSize="md" fontWeight="500" color={textColorSecondary}>
+                  Please provide your contact and professional details
+                </Text>
+              </Flex>
+              <Flex flexDirection="column">
+                <InputField mb="25px" id="phone_number" label="Phone Number" placeholder="Enter your phone number" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+                <InputField mb="25px" id="working_time" label="Working Time" placeholder="e.g., Monday - Friday, 08.00 AM - 20.00 PM" type="text" value={workingTime} onChange={(e) => setWorkingTime(e.target.value)} />
+                <InputField mb="25px" id="address" label="Work Address" placeholder="Enter your address" value={address} onChange={(e) => setAddress(e.target.value)} />
+                <FormControl mb="25px">
+                  <Text mb="8px" color={textColorPrimary} fontWeight="500">
+                    Select Region
+                  </Text>
+                  <Select placeholder="Select your region" id="region" value={region} onChange={(e) => setRegion(e.target.value)}>
+                    {regionOptions.map((region) => (
+                      <option key={region} value={region}>
+                        {region}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
+                <InputField mb="25px" id="experience" label="Years of Experience" placeholder="Enter your years of experience" type="number" value={experience} onChange={(e) => setExperience(Number(e.target.value))} />
+              </Flex>
+            </Card>
+          </FormControl>
         </Flex>
       </SimpleGrid>
-      <Delete />
+      <Button colorScheme="teal" size="lg" w="100%" mt={4} onClick={handleSave}>
+        Save Changes
+      </Button>
     </Box>
   );
 }

@@ -8,6 +8,7 @@ export default function Settings() {
   // Chakra Color Mode
   const textColorPrimary = useColorModeValue('navy.700', 'white');
   const textColorSecondary = 'gray.500';
+
   return (
     <FormControl>
       <Card mb="20px" pb="50px" h="100%">
@@ -18,29 +19,46 @@ export default function Settings() {
             mb="6px"
             fontWeight="bold"
           >
-            Social Profiles
+            Consultation Fees
           </Text>
           <Text fontSize="md" fontWeight="500" color={textColorSecondary}>
-            Here you can set user social profiles
+            Please enter your consultation fees for each service.
           </Text>
         </Flex>
         <InputField
           mb="25px"
-          id="twitter_username"
-          label="Twitter Username"
-          placeholder="Twitter Username"
+          id="fee_messaging"
+          label="Messaging Fee"
+          placeholder="Enter fee for messaging consultation"
+          type="number"
         />
         <InputField
           mb="25px"
-          id="facebook_username"
-          label="Facebook Username"
-          placeholder="Facebook Username"
+          id="fee_voice_call"
+          label="Voice Call Fee"
+          placeholder="Enter fee for voice call consultation"
+          type="number"
         />
         <InputField
           mb="25px"
-          id="github_username"
-          label="Github Username"
-          placeholder="Github Username"
+          id="fee_video_call"
+          label="Video Call Fee"
+          placeholder="Enter fee for video call consultation"
+          type="number"
+        />
+        <InputField
+          mb="25px"
+          id="fee_in_person"
+          label="In-Person Consultation Fee"
+          placeholder="Enter fee for in-person consultation"
+          type="number"
+        />
+        <InputField
+          mb="25px"
+          id="fee_third_party"
+          label="Third-Party Consultation Fee"
+          placeholder="Enter fee for consultation with third-party assistance (e.g., interpreter or nurse)"
+          type="number"
         />
       </Card>
     </FormControl>

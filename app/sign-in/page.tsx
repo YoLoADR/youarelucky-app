@@ -110,7 +110,7 @@ function SignIn() {
           email: firebaseUser.email,
           ...userData,
         });
-        router.push('/appointement');
+        router.push('/appointment');
       } else {
         throw new Error('User data does not exist');
       }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { db } from '@/firebase'; // Assurez-vous d'importer correctement la configuration Firebase
+import firebase from 'firebase/compat/app';
 
 const useManageAppointment = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -77,31 +78,26 @@ const useManageAppointment = () => {
     }
   };
 
-  const cancelAppointmentAndMarkDoctorAvailable = async (doctorId, date, time) => {
+  const cancelAppointmentAndMarkDoctorAvailable = async (appointmentId, doctorId, date, time) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const appointmentSnapshot = await db
-        .collection("appointments")
-        .where("doctorId", "==", doctorId)
-        .where("date", "==", date)
-        .where("time", "==", time)
-        .get();
+      // Récupération du document d'appointment par son ID
+      const appointmentDoc = db.collection("appointments").doc(appointmentId);
+      const appointmentData = (await appointmentDoc.get()).data();
 
-      if (appointmentSnapshot.empty) {
+      if (!appointmentData) {
         setError("Appointment not found");
         setIsLoading(false);
         return;
       }
 
-      const appointmentDoc = appointmentSnapshot.docs[0];
-      const appointmentData = appointmentDoc.data();
-
+      // Récupération de la disponibilité du docteur
       const availabilitySnapshot = await db
         .collection("doctors-availabilities")
-        .where("doctorId", "==", appointmentData.doctorId)
-        .where("date", "==", appointmentData.date)
+        .where("doctorId", "==", doctorId)
+        .where("date", "==", date)
         .get();
 
       if (availabilitySnapshot.empty) {
@@ -114,8 +110,9 @@ const useManageAppointment = () => {
       const availableTimesData = availableTimesDoc.data();
       const availableTimes = availableTimesData.availableTimes;
 
+      // Mise à jour de la disponibilité du créneau horaire
       const selectedTimeSlot = availableTimes.find(
-        (timeSlot) => timeSlot.startTime === appointmentData.time && !timeSlot.available
+        (timeSlot) => timeSlot.startTime === time && !timeSlot.available
       );
 
       if (!selectedTimeSlot) {
@@ -126,11 +123,13 @@ const useManageAppointment = () => {
 
       selectedTimeSlot.available = true;
 
-      await appointmentDoc.ref.update({
+      // Mise à jour de l'état de l'appointment à "Cancelled"
+      await appointmentDoc.update({
         status: "Cancelled",
-        updatedAt: new Date(),
+        updatedAt: new Date().toISOString(),
       });
 
+      // Mise à jour de la disponibilité du docteur
       await availableTimesDoc.ref.update({ availableTimes });
 
       setIsLoading(false);

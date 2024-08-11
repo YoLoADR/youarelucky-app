@@ -7,7 +7,7 @@ import {
     useColorModeValue,
     useToast,
   } from '@chakra-ui/react';
-  import { useEffect, useState } from 'react';
+  import { useEffect, useState, useCallback } from 'react';
   import { db } from '@/firebase';
   import useUserStore from '@/store/userStore';
   import { FaStar } from 'react-icons/fa';
@@ -15,10 +15,9 @@ import {
   export default function UpcomingBooking() {
     const { user } = useUserStore();
     const [bookings, setBookings] = useState([]);
-    const [selectedAppointment, setSelectedAppointment] = useState(null);
     const toast = useToast();
   
-    useEffect(() => {
+    const fetchBookings = useCallback(() => {
       let unsubscribe;
   
       if (user && user.uid) {
@@ -48,19 +47,25 @@ import {
       }
   
       return () => {
-        if (unsubscribe) unsubscribe(); // Cleanup the listener on unmount
+        if (unsubscribe) unsubscribe();
       };
     }, [user, toast]);
+  
+    useEffect(() => {
+      const unsubscribe = fetchBookings();
+      return () => unsubscribe && unsubscribe();
+    }, [fetchBookings]);
   
     const handleCancelAppointment = async (appointment) => {
       try {
         // Logique d'annulation de rendez-vous
-        // ...
+        const appointmentRef = db.collection('appointments').doc(appointment.id);
+        await appointmentRef.update({ status: 'Cancelled' });
   
         setBookings((prevBookings) =>
           prevBookings.filter((booking) => booking.id !== appointment.id)
         );
-        setSelectedAppointment(null);
+  
         toast({
           title: 'Success',
           description: 'Appointment successfully canceled.',
@@ -80,13 +85,16 @@ import {
       }
     };
   
+    const bg = useColorModeValue('white', 'gray.700');
+    const textColor = useColorModeValue('gray.600', 'gray.400');
+  
     return (
       <Box>
         {bookings.map((item) => (
           <Box
             key={item.id}
             borderRadius="lg"
-            bg={useColorModeValue('white', 'gray.700')}
+            bg={bg}
             p={4}
             mb={4}
             boxShadow="md"
@@ -104,7 +112,7 @@ import {
                   <Text fontWeight="bold" fontSize="lg">
                     {item.doctor}
                   </Text>
-                  <Text color={useColorModeValue('gray.600', 'gray.400')}>
+                  <Text color={textColor}>
                     {item.package} - {item.date} - {item.time}
                   </Text>
                   <Flex alignItems="center">
