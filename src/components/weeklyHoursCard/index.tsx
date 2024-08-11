@@ -25,9 +25,10 @@ const daysOfWeek = [
   { name: 'SAT', label: 'Saturday' },
 ];
 
-const timeOptions = Array.from({ length: 24 }, (_, i) => {
-  const hour = i.toString().padStart(2, '0');
-  return `${hour}:00`;
+const timeOptions = Array.from({ length: 48 }, (_, i) => {
+  const hour = Math.floor(i / 2).toString().padStart(2, '0');
+  const minutes = i % 2 === 0 ? '00' : '30';
+  return `${hour}:${minutes}`;
 });
 
 export default function WeeklyHoursCard({ onScheduleChange }) {
@@ -100,15 +101,23 @@ export default function WeeklyHoursCard({ onScheduleChange }) {
     }));
   };
 
-  // Function to generate all hours within a time range
+  // Function to generate all time slots within a time range (30-minute intervals)
   const generateTimeRange = (start, end) => {
     const times = [];
-    let currentHour = parseInt(start.split(':')[0]);
-    const endHour = parseInt(end.split(':')[0]);
+    let currentTime = start;
+    const endTime = end;
 
-    while (currentHour <= endHour) {
-      times.push({ startTime: `${currentHour.toString().padStart(2, '0')}:00`, available: true });
-      currentHour++;
+    while (currentTime <= endTime) {
+      times.push({ startTime: currentTime, available: true });
+
+      // Calculate the next time slot (30 minutes later)
+      let [hour, minute] = currentTime.split(':').map(Number);
+      minute += 30;
+      if (minute === 60) {
+        minute = 0;
+        hour += 1;
+      }
+      currentTime = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
     }
 
     return times;
