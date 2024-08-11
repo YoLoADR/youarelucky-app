@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Flex,
@@ -24,21 +24,12 @@ const daysOfWeek = [
   { name: 'SAT', label: 'Saturday' },
 ];
 
-const timeOptions = [
-  '09:00',
-  '10:00',
-  '11:00',
-  '12:00',
-  '13:00',
-  '14:00',
-  '15:00',
-  '16:00',
-  '17:00',
-  '18:00',
-  '19:00',
-];
+const timeOptions = Array.from({ length: 24 }, (_, i) => {
+  const hour = i.toString().padStart(2, '0');
+  return `${hour}:00`;
+});
 
-export default function WeeklyHoursCard() {
+export default function WeeklyHoursCard({ onScheduleChange }) {
   const [schedule, setSchedule] = useState(
     daysOfWeek.reduce(
       (acc, day) => ({
@@ -48,6 +39,20 @@ export default function WeeklyHoursCard() {
       {}
     )
   );
+
+  useEffect(() => {
+    // Transform the schedule into a simpler format and pass it to the parent via onScheduleChange
+    const simplifiedSchedule = daysOfWeek.reduce((acc, day) => {
+      if (schedule[day.name].checked) {
+        acc[day.name] = schedule[day.name].slots.filter(
+          (slot) => slot.morning || slot.afternoon
+        );
+      }
+      return acc;
+    }, {});
+
+    onScheduleChange(simplifiedSchedule);
+  }, [schedule, onScheduleChange]);
 
   const handleDayChange = (day) => {
     setSchedule((prev) => ({
@@ -73,13 +78,15 @@ export default function WeeklyHoursCard() {
   };
 
   const addSlot = (day) => {
-    setSchedule((prev) => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        slots: [...prev[day].slots, { morning: '', afternoon: '' }],
-      },
-    }));
+    if (schedule[day].slots.length < 4) {
+      setSchedule((prev) => ({
+        ...prev,
+        [day]: {
+          ...prev[day],
+          slots: [...prev[day].slots, { morning: '', afternoon: '' }],
+        },
+      }));
+    }
   };
 
   const removeSlot = (day, index) => {
@@ -150,14 +157,16 @@ export default function WeeklyHoursCard() {
                   </Button>
                 </Flex>
               ))}
-              <Button
-                onClick={() => addSlot(day.name)}
-                variant="outline"
-                size="sm"
-                colorScheme="teal"
-              >
-                + Add Slot
-              </Button>
+              {schedule[day.name].slots.length < 4 && (
+                <Button
+                  onClick={() => addSlot(day.name)}
+                  variant="outline"
+                  size="sm"
+                  colorScheme="teal"
+                >
+                  + Add Slot
+                </Button>
+              )}
             </Flex>
           ) : (
             <Text color="gray.500">Unavailable</Text>
