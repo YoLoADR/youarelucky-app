@@ -3,28 +3,93 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Button,
   Flex,
   FormControl,
-  FormLabel,
-  Input,
-  Text,
-  useToast,
-  Avatar,
+  SimpleGrid,
+  useColorModeValue,
   Select,
+  Text,
+  Button,
+  useToast,
 } from '@chakra-ui/react';
-import { useRouter } from 'next/navigation';
+import Card from '@/components/card/Card';
+import InputField from '@/components/fields/InputField';
+import TextField from '@/components/fields/TextField';
+import WeeklyHoursCard from '@/components/weeklyHoursCard';
+import { NextAvatar } from '@/components/image/Avatar';
+import avatarEmpty from '../../public/img/avatars/avatar_empty.png';
 import useUserStore from '@/store/userStore';
-import { auth, db } from '@/firebase';
+import { auth, db, storage } from '@/firebase';
+import { useRouter } from 'next/navigation';
+
+
+// Objet de conversion approximatif (les taux de change sont fictifs pour l'exemple)
+const conversionRates = {
+  'France': 0.85, // 1 USD ≈ 0.85 EUR
+  'Ghana': 12.0, // 1 USD ≈ 12 GHS
+  'India': 74.0, // 1 USD ≈ 74 INR
+  'Kenya': 109.0, // 1 USD ≈ 109 KES
+  'Nigeria': 411.0, // 1 USD ≈ 411 NGN
+  'South Africa': 14.5, // 1 USD ≈ 14.5 ZAR
+  'United States': 1, // 1 USD ≈ 1 USD
+  'United Kingdom': 0.75, // 1 USD ≈ 0.75 GBP
+};
+
+// Composant personnalisé pour afficher les montants en deux devises
+const DualCurrencyInputField = ({
+  id,
+  label,
+  placeholder,
+  usdValue,
+  onUsdChange,
+  region,
+}) => {
+  const localCurrencyValue = usdValue * (conversionRates[region] || 1);
+
+  return (
+    <Flex direction="column" mb="25px">
+      <Text fontWeight="bold">{label}</Text>
+      <Flex>
+        <InputField
+          id={`${id}_usd`}
+          label="USD"
+          placeholder={placeholder}
+          type="number"
+          value={usdValue}
+          onChange={(e) => onUsdChange(Number(e.target.value))}
+          me="4"
+        />
+        <InputField
+          id={`${id}_local`}
+          label={`Approx. in ${region}`}
+          placeholder={placeholder}
+          type="number"
+          value={localCurrencyValue.toFixed(2)}
+          isReadOnly
+        />
+      </Flex>
+    </Flex>
+  );
+};
 
 const FillYourProfile = () => {
   const { user, setUser } = useUserStore();
-  const [image, setImage] = useState(user?.photoURL || '');
-  const [fullName, setFullName] = useState(user?.fullName || '');
-  const [nickname, setNickname] = useState(user?.nickname || '');
+  const [specialty, setSpecialty] = useState(user?.specialty || '');
+  const [experience, setExperience] = useState(user?.experience || '');
+  const [address, setAddress] = useState(user?.address || '');
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
-  const [selectedRegion, setSelectedRegion] = useState(user?.region || '');
-  const [error, setError] = useState(null);
+  const [region, setRegion] = useState(user?.region || '');
+  const [about, setAbout] = useState(user?.about || '');
+  const [feeMessaging, setFeeMessaging] = useState(user?.fee?.messaging || '');
+  const [feeVoiceCall, setFeeVoiceCall] = useState(user?.fee?.voiceCall || '');
+  const [feeVideoCall, setFeeVideoCall] = useState(user?.fee?.videoCall || '');
+  const [feeInPerson, setFeeInPerson] = useState(user?.fee?.inPerson || '');
+  const [feeThirdParty, setFeeThirdParty] = useState(user?.fee?.thirdParty || '');
+  const [image, setImage] = useState<File | null>(null);
+  const [imageURL, setImageURL] = useState(user?.photoURL || '');
+
+  const textColorPrimary = useColorModeValue('navy.700', 'white');
+  const textColorSecondary = 'gray.500';
   const toast = useToast();
   const router = useRouter();
 
@@ -39,29 +104,17 @@ const FillYourProfile = () => {
     'United Kingdom',
   ];
 
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: 'An error occurred.',
-        description: error,
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-  }, [error, toast]);
-
   const pickImage = async () => {
-    // Utilisation d'un input de fichier pour le web
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*';
     fileInput.onchange = () => {
       if (fileInput.files && fileInput.files.length > 0) {
         const file = fileInput.files[0];
+        setImage(file);
         const reader = new FileReader();
         reader.onloadend = () => {
-          setImage(reader.result as string);
+          setImageURL(reader.result as string);
         };
         reader.readAsDataURL(file);
       }
@@ -69,11 +122,20 @@ const FillYourProfile = () => {
     fileInput.click();
   };
 
-  const handleContinue = async () => {
-    if (!fullName || !selectedRegion) {
+  const uploadImageToStorage = async (file: File, uid: string): Promise<string> => {
+    const storageRef = storage.ref();
+    const fileRef = storageRef.child(`profileImages/${uid}/${file.name}`);
+    await fileRef.put(file);
+    const downloadURL = await fileRef.getDownloadURL();
+    return downloadURL;
+  };
+
+  const handleSave = async () => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
       toast({
         title: 'Error',
-        description: 'Please provide your full name and select a region.',
+        description: 'User not authenticated. Please sign in again.',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -81,18 +143,38 @@ const FillYourProfile = () => {
       return;
     }
 
-    const currentUser = auth.currentUser;
-    const userData = {
-      fullName,
-      nickname,
-      phoneNumber,
-      region: selectedRegion,
-      photoURL: image,
-    };
+    let finalImageURL = imageURL;
 
     try {
-      await db.collection('users').doc(currentUser.uid).set(userData, { merge: true });
-      setUser(userData); // Mettre à jour Zustand store
+      if (image) {
+        finalImageURL = await uploadImageToStorage(image, currentUser.uid);
+      }
+
+      const updatedData = {
+        ...(specialty && { specialty }),
+        ...(experience && { experience }),
+        ...(address && { address }),
+        ...(phoneNumber && { phoneNumber }),
+        ...(region && { region }),
+        ...(about && { about }),
+        ...(finalImageURL && { photoURL: finalImageURL }),
+        fee: {
+          ...(feeMessaging && { messaging: feeMessaging }),
+          ...(feeVoiceCall && { voiceCall: feeVoiceCall }),
+          ...(feeVideoCall && { videoCall: feeVideoCall }),
+          ...(feeInPerson && { inPerson: feeInPerson }),
+          ...(feeThirdParty && { thirdParty: feeThirdParty }),
+        },
+        updatedAt: new Date().toISOString(),
+      };
+
+      await db.collection('users').doc(currentUser.uid).set(updatedData, { merge: true });
+
+      setUser((prevUser) => ({
+        ...prevUser,
+        ...updatedData,
+      }));
+
       toast({
         title: 'Profile Updated',
         description: 'Your profile has been updated successfully!',
@@ -100,67 +182,170 @@ const FillYourProfile = () => {
         duration: 5000,
         isClosable: true,
       });
+
       router.push('/dashboard');
     } catch (error) {
-      setError(error.message);
+      toast({
+        title: 'Error',
+        description: error.message,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
     }
   };
 
   return (
-    <Flex direction="column" align="center" justify="center" minH="100vh">
-      <Box w="100%" maxW="md" p={8} borderWidth={1} borderRadius={8} boxShadow="lg">
-        <Text fontSize="2xl" fontWeight="bold" mb={4}>
-          Fill Your Profile
-        </Text>
-        <FormControl mb={4}>
-          <Flex direction="column" align="center" mb={4}>
-            <Avatar size="xl" src={image || user?.photoURL} />
-            <Button mt={2} onClick={pickImage}>
-              Upload Image
-            </Button>
+    <Box mt={{ base: '70px', md: '0px', xl: '0px' }} padding="25px">
+      <SimpleGrid columns={{ sm: 1, lg: 2 }} spacing="20px" mb="20px">
+        {/* Column Left */}
+        <Flex direction="column">
+          <Flex direction="column" gap="30px">
+            <Card mb="20px" alignItems="center">
+              <Flex bg={'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%)'} w="100%" h="129px" borderRadius="16px" />
+              <NextAvatar mx="auto" src={imageURL ? imageURL : avatarEmpty} h="87px" w="87px" mt="-43px" mb="15px" />
+              <Button mt={2} onClick={pickImage}>
+                Upload Image
+              </Button>
+              <Flex align="center" mx="auto" px="14px" mb="20px">
+                <Text color={textColorSecondary} fontSize="sm" fontWeight="500" lineHeight="100%">
+                  Select Specialty :
+                </Text>
+                <Select
+                  ms="-4px"
+                  w="unset"
+                  h="100%"
+                  variant="transparent"
+                  display="flex"
+                  textColor={textColorPrimary}
+                  color={textColorPrimary}
+                  alignItems="center"
+                  value={specialty}
+                  onChange={(e) => setSpecialty(e.target.value)}
+                >
+                  <option value="Generalist">Generalist</option>
+                  <option value="Ophthalmo">Ophthalmo</option>
+                  <option value="Nutritionist">Nutritionist</option>
+                  <option value="Neurologist">Neurologist</option>
+                  <option value="Pediatric">Pediatric</option>
+                  <option value="Radiologist">Radiologist</option>
+                  <option value="Others">Others</option>
+                </Select>
+              </Flex>
+            </Card>
           </Flex>
-          <FormLabel>Full Name</FormLabel>
-          <Input
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            placeholder="Enter your full name"
+          <FormControl>
+            <Card>
+              <Flex direction="column" mb="40px">
+                <Text fontSize="xl" color={textColorPrimary} mb="6px" fontWeight="bold">
+                  Account Settings
+                </Text>
+                <Text fontSize="md" fontWeight="500" color={textColorSecondary}>
+                  Here you can change user account information
+                </Text>
+              </Flex>
+              <SimpleGrid columns={{ sm: 1, md: 2 }} spacing={{ base: '20px', xl: '20px' }}>
+                <InputField mb="10px" me="30px" id="first_name" label="First Name" placeholder="Adela" value={user?.firstName} />
+                <InputField mb="10px" id="last_name" label="Last Name" placeholder="Parkson" value={user?.lastName} />
+                <InputField mb="10px" me="30px" id="email" label="Email Address" placeholder="hello@youarelucky.ai" value={user?.email} />
+                <InputField mb="20px" id="username" label="Username" placeholder="@parkson.adela" value={user?.username} />
+              </SimpleGrid>
+              <TextField id="about" label="About Me" minH="150px" placeholder="Tell something about yourself in 150 characters!" value={about} onChange={(e) => setAbout(e.target.value)} />
+            </Card>
+          </FormControl>
+          <Box mt="25px">
+            <WeeklyHoursCard />
+          </Box>
+        </Flex>
+        {/* Column Right */}
+        <Flex direction="column" gap="20px">
+        <FormControl>
+        <Card mb="20px" pb="50px" h="100%">
+          <Flex direction="column" mb="40px">
+            <Text fontSize="xl" color={textColorPrimary} mb="6px" fontWeight="bold">
+              Consultation Fees
+            </Text>
+            <Text fontSize="md" fontWeight="500" color={textColorSecondary}>
+              Please enter your consultation fees for each service.
+            </Text>
+          </Flex>
+          <DualCurrencyInputField
+            id="fee_messaging"
+            label="Messaging Fee"
+            placeholder="Enter fee for messaging consultation"
+            usdValue={feeMessaging}
+            onUsdChange={setFeeMessaging}
+            region={region}
           />
-        </FormControl>
-        <FormControl mb={4}>
-          <FormLabel>Nickname</FormLabel>
-          <Input
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            placeholder="Enter your nickname"
+          <DualCurrencyInputField
+            id="fee_voice_call"
+            label="Voice Call Fee"
+            placeholder="Enter fee for voice call consultation"
+            usdValue={feeVoiceCall}
+            onUsdChange={setFeeVoiceCall}
+            region={region}
           />
-        </FormControl>
-        <FormControl mb={4}>
-          <FormLabel>Phone Number</FormLabel>
-          <Input
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
-            placeholder="Enter your phone number"
+          <DualCurrencyInputField
+            id="fee_video_call"
+            label="Video Call Fee"
+            placeholder="Enter fee for video call consultation"
+            usdValue={feeVideoCall}
+            onUsdChange={setFeeVideoCall}
+            region={region}
           />
-        </FormControl>
-        <FormControl mb={4}>
-          <FormLabel>Select Region</FormLabel>
-          <Select
-            placeholder="Select your region"
-            value={selectedRegion}
-            onChange={(e) => setSelectedRegion(e.target.value)}
-          >
-            {regionOptions.map((region) => (
-              <option key={region} value={region}>
-                {region}
-              </option>
-            ))}
-          </Select>
-        </FormControl>
-        <Button colorScheme="teal" size="lg" w="100%" onClick={handleContinue}>
-          Continue
-        </Button>
-      </Box>
-    </Flex>
+          <DualCurrencyInputField
+            id="fee_in_person"
+            label="In-Person Consultation Fee"
+            placeholder="Enter fee for in-person consultation"
+            usdValue={feeInPerson}
+            onUsdChange={setFeeInPerson}
+            region={region}
+          />
+          <DualCurrencyInputField
+            id="fee_third_party"
+            label="Third-Party Consultation Fee"
+            placeholder="Enter fee for consultation with third-party assistance (e.g., interpreter or nurse)"
+            usdValue={feeThirdParty}
+            onUsdChange={setFeeThirdParty}
+            region={region}
+          />
+        </Card>
+      </FormControl>
+          <FormControl>
+            <Card>
+              <Flex direction="column" mb="40px">
+                <Text fontSize="xl" color={textColorPrimary} mb="6px" fontWeight="bold">
+                  Professional Information
+                </Text>
+                <Text fontSize="md" fontWeight="500" color={textColorSecondary}>
+                  Please provide your contact and professional details
+                </Text>
+              </Flex>
+              <Flex flexDirection="column">
+                <InputField mb="25px" id="phone_number" label="Phone Number" placeholder="Enter your phone number" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+                <InputField mb="25px" id="address" label="Work Address" placeholder="Enter your address" value={address} onChange={(e) => setAddress(e.target.value)} />
+                <FormControl mb="25px">
+                  <Text mb="8px" color={textColorPrimary} fontWeight="500">
+                    Select Region
+                  </Text>
+                  <Select placeholder="Select your region" id="region" value={region} onChange={(e) => setRegion(e.target.value)}>
+                    {regionOptions.map((region) => (
+                      <option key={region} value={region}>
+                        {region}
+                      </option>
+                    ))}
+                  </Select>
+                </FormControl>
+                <InputField mb="25px" id="experience" label="Years of Experience" placeholder="Enter your years of experience" type="number" value={experience} onChange={(e) => setExperience(Number(e.target.value))} />
+              </Flex>
+            </Card>
+          </FormControl>
+        </Flex>
+      </SimpleGrid>
+      <Button colorScheme="teal" size="lg" w="100%" mt={4} onClick={handleSave}>
+        Save Changes
+      </Button>
+    </Box>
   );
 };
 
