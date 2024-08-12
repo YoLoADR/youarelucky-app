@@ -15,10 +15,19 @@ const useUserStore = create<UserState>((set) => ({
     email: '',
     nickname: '',
     phoneNumber: '',
-    photoURL:'',
-    gender:'other',
-    dateOfBirth:'',
-    region: '', // Add region here
+    photoURL: '',
+    gender: 'other',
+    dateOfBirth: '',
+    region: '', // Région de l'utilisateur
+    specialty: '', // Spécialité de l'utilisateur
+    experience: '', // Années d'expérience
+    address: '', // Adresse du travail
+    about: '', // À propos de l'utilisateur
+    feeMessaging: '', // Frais de messagerie
+    feeVoiceCall: '', // Frais d'appel vocal
+    feeVideoCall: '', // Frais d'appel vidéo
+    feeInPerson: '', // Frais de consultation en personne
+    feeThirdParty: '', // Frais de consultation avec tiers
   },
   setUser: (userData) => set((state) => ({
     user: {

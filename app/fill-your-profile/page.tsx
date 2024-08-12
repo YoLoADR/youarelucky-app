@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Flex,
@@ -26,7 +26,6 @@ import useUserStore from '@/store/userStore';
 import { auth, db, storage } from '@/firebase';
 import { useRouter } from 'next/navigation';
 
-
 // Objet de conversion approximatif (les taux de change sont fictifs pour l'exemple)
 const conversionRates = {
   'France': 0.85, // 1 USD ≈ 0.85 EUR
@@ -50,6 +49,12 @@ const DualCurrencyInputField = ({
 }) => {
   const localCurrencyValue = usdValue * (conversionRates[region] || 1);
 
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    const numericValue = value === '' ? '' : Number(value);
+    onUsdChange(numericValue);
+  };
+
   return (
     <Flex direction="column" mb="25px">
       <Text fontWeight="bold" mb="8px">{label}</Text>
@@ -63,8 +68,9 @@ const DualCurrencyInputField = ({
             id={`${id}_usd`}
             placeholder={placeholder}
             type="number"
-            value={usdValue}
-            onChange={(e) => onUsdChange(Number(e.target.value))}
+            value={usdValue || ''}
+            onChange={handleInputChange}
+            min={0}
           />
         </InputGroup>
 
@@ -92,11 +98,11 @@ const FillYourProfile = () => {
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
   const [region, setRegion] = useState(user?.region || '');
   const [about, setAbout] = useState(user?.about || '');
-  const [feeMessaging, setFeeMessaging] = useState(user?.fee?.messaging || '');
-  const [feeVoiceCall, setFeeVoiceCall] = useState(user?.fee?.voiceCall || '');
-  const [feeVideoCall, setFeeVideoCall] = useState(user?.fee?.videoCall || '');
-  const [feeInPerson, setFeeInPerson] = useState(user?.fee?.inPerson || '');
-  const [feeThirdParty, setFeeThirdParty] = useState(user?.fee?.thirdParty || '');
+  const [feeMessaging, setFeeMessaging] = useState(user?.feeMessaging || '');
+  const [feeVoiceCall, setFeeVoiceCall] = useState(user?.feeVoiceCall || '');
+  const [feeVideoCall, setFeeVideoCall] = useState(user?.feeVideoCall || '');
+  const [feeInPerson, setFeeInPerson] = useState(user?.feeInPerson || '');
+  const [feeThirdParty, setFeeThirdParty] = useState(user?.feeThirdParty || '');
   const [image, setImage] = useState<File | null>(null);
   const [imageURL, setImageURL] = useState(user?.photoURL || '');
 
@@ -175,13 +181,11 @@ const FillYourProfile = () => {
         ...(region && { region }),
         ...(about && { about }),
         ...(finalImageURL && { photoURL: finalImageURL }),
-        fee: {
-          ...(feeMessaging && { messaging: feeMessaging }),
-          ...(feeVoiceCall && { voiceCall: feeVoiceCall }),
-          ...(feeVideoCall && { videoCall: feeVideoCall }),
-          ...(feeInPerson && { inPerson: feeInPerson }),
-          ...(feeThirdParty && { thirdParty: feeThirdParty }),
-        },
+        ...(feeMessaging && { feeMessaging }),
+        ...(feeVoiceCall && { feeVoiceCall }),
+        ...(feeVideoCall && { feeVideoCall }),
+        ...(feeInPerson && { feeInPerson }),
+        ...(feeThirdParty && { feeThirdParty }),
         updatedAt: new Date().toISOString(),
       };
 

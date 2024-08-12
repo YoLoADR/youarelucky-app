@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Flex,
@@ -24,7 +24,7 @@ import { NextAvatar } from '@/components/image/Avatar';
 import avatarEmpty from '../../public/img/avatars/avatar_empty.png';
 import useUserStore from '@/store/userStore';
 import { auth, db, storage } from '@/firebase';
-
+import { useRouter } from 'next/navigation';
 
 // Objet de conversion approximatif (les taux de change sont fictifs pour l'exemple)
 const conversionRates = {
@@ -49,6 +49,12 @@ const DualCurrencyInputField = ({
 }) => {
   const localCurrencyValue = usdValue * (conversionRates[region] || 1);
 
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    const numericValue = value === '' ? '' : Number(value);
+    onUsdChange(numericValue);
+  };
+
   return (
     <Flex direction="column" mb="25px">
       <Text fontWeight="bold" mb="8px">{label}</Text>
@@ -62,8 +68,9 @@ const DualCurrencyInputField = ({
             id={`${id}_usd`}
             placeholder={placeholder}
             type="number"
-            value={usdValue}
-            onChange={(e) => onUsdChange(Number(e.target.value))}
+            value={usdValue || ''}
+            onChange={handleInputChange}
+            min={0}
           />
         </InputGroup>
 
@@ -83,7 +90,7 @@ const DualCurrencyInputField = ({
   );
 };
 
-export default function Settings() {
+const Settings = () => {
   const { user, setUser } = useUserStore();
   const [specialty, setSpecialty] = useState(user?.specialty || '');
   const [experience, setExperience] = useState(user?.experience || '');
@@ -91,18 +98,18 @@ export default function Settings() {
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
   const [region, setRegion] = useState(user?.region || '');
   const [about, setAbout] = useState(user?.about || '');
-  const [feeMessaging, setFeeMessaging] = useState(user?.fee?.messaging || '');
-  const [feeVoiceCall, setFeeVoiceCall] = useState(user?.fee?.voiceCall || '');
-  const [feeVideoCall, setFeeVideoCall] = useState(user?.fee?.videoCall || '');
-  const [feeInPerson, setFeeInPerson] = useState(user?.fee?.inPerson || '');
-  const [feeThirdParty, setFeeThirdParty] = useState(user?.fee?.thirdParty || '');
+  const [feeMessaging, setFeeMessaging] = useState(user?.feeMessaging || '');
+  const [feeVoiceCall, setFeeVoiceCall] = useState(user?.feeVoiceCall || '');
+  const [feeVideoCall, setFeeVideoCall] = useState(user?.feeVideoCall || '');
+  const [feeInPerson, setFeeInPerson] = useState(user?.feeInPerson || '');
+  const [feeThirdParty, setFeeThirdParty] = useState(user?.feeThirdParty || '');
   const [image, setImage] = useState<File | null>(null);
   const [imageURL, setImageURL] = useState(user?.photoURL || '');
-
 
   const textColorPrimary = useColorModeValue('navy.700', 'white');
   const textColorSecondary = 'gray.500';
   const toast = useToast();
+  const router = useRouter();
 
   const regionOptions = [
     'France',
@@ -114,12 +121,6 @@ export default function Settings() {
     'United States',
     'United Kingdom',
   ];
-
-  useEffect(() => {
-    if (user) {
-      console.log('User signed up and logged in, redirecting to /fill-your-profile:', user);
-    }
-  }, [user]);
 
   const pickImage = async () => {
     const fileInput = document.createElement('input');
@@ -180,13 +181,11 @@ export default function Settings() {
         ...(region && { region }),
         ...(about && { about }),
         ...(finalImageURL && { photoURL: finalImageURL }),
-        fee: {
-          ...(feeMessaging && { messaging: feeMessaging }),
-          ...(feeVoiceCall && { voiceCall: feeVoiceCall }),
-          ...(feeVideoCall && { videoCall: feeVideoCall }),
-          ...(feeInPerson && { inPerson: feeInPerson }),
-          ...(feeThirdParty && { thirdParty: feeThirdParty }),
-        },
+        ...(feeMessaging && { feeMessaging }),
+        ...(feeVoiceCall && { feeVoiceCall }),
+        ...(feeVideoCall && { feeVideoCall }),
+        ...(feeInPerson && { feeInPerson }),
+        ...(feeThirdParty && { feeThirdParty }),
         updatedAt: new Date().toISOString(),
       };
 
@@ -205,6 +204,7 @@ export default function Settings() {
         isClosable: true,
       });
 
+      // router.push('/appointment');
     } catch (error) {
       toast({
         title: 'Error',
@@ -224,7 +224,7 @@ export default function Settings() {
           <Flex direction="column" gap="30px">
             <Card mb="20px" alignItems="center">
               <Flex bg={'linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%)'} w="100%" h="129px" borderRadius="16px" />
-              <NextAvatar mx="auto" src={user.photoURL ? user.photoURL : avatarEmpty} h="87px" w="87px" mt="-43px" mb="15px" />
+              <NextAvatar mx="auto" src={imageURL ? imageURL : avatarEmpty} h="87px" w="87px" mt="-43px" mb="15px" />
               <Button mt={2} onClick={pickImage}>
                 Upload Image
               </Button>
@@ -368,4 +368,6 @@ export default function Settings() {
       </Button>
     </Box>
   );
-}
+};
+
+export default Settings;
