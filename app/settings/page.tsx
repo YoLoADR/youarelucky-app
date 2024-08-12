@@ -1,6 +1,6 @@
 'use client';
+
 import React, { useState, useEffect } from 'react';
-// Chakra imports
 import {
   Box,
   Flex,
@@ -11,36 +11,85 @@ import {
   Text,
   Button,
   useToast,
+  InputGroup,
+  InputLeftElement,
+  InputLeftAddon,
+  Input
 } from '@chakra-ui/react';
-import { useAppSelector } from '@/hooks';
 import Card from '@/components/card/Card';
 import InputField from '@/components/fields/InputField';
 import TextField from '@/components/fields/TextField';
-import WeeklyHoursCard from '@/components/weeklyHoursCard'
+import WeeklyHoursCard from '@/components/weeklyHoursCard';
 import { NextAvatar } from '@/components/image/Avatar';
 import avatarEmpty from '../../public/img/avatars/avatar_empty.png';
 import useUserStore from '@/store/userStore';
 import { auth, db, storage } from '@/firebase';
 
+
+// Objet de conversion approximatif (les taux de change sont fictifs pour l'exemple)
+const conversionRates = {
+  'France': 0.85, // 1 USD ≈ 0.85 EUR
+  'Ghana': 12.0, // 1 USD ≈ 12 GHS
+  'India': 74.0, // 1 USD ≈ 74 INR
+  'Kenya': 109.0, // 1 USD ≈ 109 KES
+  'Nigeria': 411.0, // 1 USD ≈ 411 NGN
+  'South Africa': 14.5, // 1 USD ≈ 14.5 ZAR
+  'United States': 1, // 1 USD ≈ 1 USD
+  'United Kingdom': 0.75, // 1 USD ≈ 0.75 GBP
+};
+
+// Composant personnalisé pour afficher les montants en deux devises
+const DualCurrencyInputField = ({
+  id,
+  label,
+  placeholder,
+  usdValue,
+  onUsdChange,
+  region,
+}) => {
+  const localCurrencyValue = usdValue * (conversionRates[region] || 1);
+
+  return (
+    <Flex direction="column" mb="25px">
+      <Text fontWeight="bold" mb="8px">{label}</Text>
+      <Flex gap="4">
+        {/* USD Input */}
+        <InputGroup>
+          <InputLeftElement pointerEvents="none" color="gray.300" fontSize="1.2em">
+            $
+          </InputLeftElement>
+          <Input
+            id={`${id}_usd`}
+            placeholder={placeholder}
+            type="number"
+            value={usdValue}
+            onChange={(e) => onUsdChange(Number(e.target.value))}
+          />
+        </InputGroup>
+
+        {/* Local Currency Input */}
+        <InputGroup>
+          <InputLeftAddon>{`Approx. in ${region}`}</InputLeftAddon>
+          <Input
+            id={`${id}_local`}
+            type="number"
+            placeholder={placeholder}
+            value={localCurrencyValue.toFixed(2)}
+            isReadOnly
+          />
+        </InputGroup>
+      </Flex>
+    </Flex>
+  );
+};
+
 export default function Settings() {
   const { user, setUser } = useUserStore();
-  const textColorPrimary = useColorModeValue('navy.700', 'white');
-  const textColorSecondary = 'gray.500';
-  const toast = useToast();
-
-  useEffect(() => {
-    if (user) {
-      console.log("user : ",user)
-    }
-  }, [user]);
-
-  // State Variables
   const [specialty, setSpecialty] = useState(user?.specialty || '');
   const [experience, setExperience] = useState(user?.experience || '');
   const [address, setAddress] = useState(user?.address || '');
   const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
   const [region, setRegion] = useState(user?.region || '');
-  const [workingTime, setWorkingTime] = useState(user?.workingTime || '');
   const [about, setAbout] = useState(user?.about || '');
   const [feeMessaging, setFeeMessaging] = useState(user?.fee?.messaging || '');
   const [feeVoiceCall, setFeeVoiceCall] = useState(user?.fee?.voiceCall || '');
@@ -49,6 +98,11 @@ export default function Settings() {
   const [feeThirdParty, setFeeThirdParty] = useState(user?.fee?.thirdParty || '');
   const [image, setImage] = useState<File | null>(null);
   const [imageURL, setImageURL] = useState(user?.photoURL || '');
+
+
+  const textColorPrimary = useColorModeValue('navy.700', 'white');
+  const textColorSecondary = 'gray.500';
+  const toast = useToast();
 
   const regionOptions = [
     'France',
@@ -60,6 +114,12 @@ export default function Settings() {
     'United States',
     'United Kingdom',
   ];
+
+  useEffect(() => {
+    if (user) {
+      console.log('User signed up and logged in, redirecting to /fill-your-profile:', user);
+    }
+  }, [user]);
 
   const pickImage = async () => {
     const fileInput = document.createElement('input');
@@ -85,6 +145,11 @@ export default function Settings() {
     await fileRef.put(file);
     const downloadURL = await fileRef.getDownloadURL();
     return downloadURL;
+  };
+
+  const handleScheduleChange = (simplifiedSchedule) => {
+    // Utilise le planning simplifié ici
+    console.log(simplifiedSchedule);
   };
 
   const handleSave = async () => {
@@ -113,7 +178,6 @@ export default function Settings() {
         ...(address && { address }),
         ...(phoneNumber && { phoneNumber }),
         ...(region && { region }),
-        ...(workingTime && { workingTime }),
         ...(about && { about }),
         ...(finalImageURL && { photoURL: finalImageURL }),
         fee: {
@@ -126,10 +190,8 @@ export default function Settings() {
         updatedAt: new Date().toISOString(),
       };
 
-      // Update only the fields that have values
       await db.collection('users').doc(currentUser.uid).set(updatedData, { merge: true });
 
-      // Update Zustand store
       setUser((prevUser) => ({
         ...prevUser,
         ...updatedData,
@@ -142,6 +204,7 @@ export default function Settings() {
         duration: 5000,
         isClosable: true,
       });
+
     } catch (error) {
       toast({
         title: 'Error',
@@ -154,7 +217,7 @@ export default function Settings() {
   };
 
   return (
-    <Box mt={{ base: '70px', md: '0px', xl: '0px' }}>
+    <Box mt={{ base: '70px', md: '0px', xl: '0px' }} padding="25px">
       <SimpleGrid columns={{ sm: 1, lg: 2 }} spacing="20px" mb="20px">
         {/* Column Left */}
         <Flex direction="column">
@@ -212,28 +275,63 @@ export default function Settings() {
             </Card>
           </FormControl>
           <Box mt="25px">
-            <WeeklyHoursCard />
+            <WeeklyHoursCard onScheduleChange={handleScheduleChange} />;
           </Box>
         </Flex>
         {/* Column Right */}
         <Flex direction="column" gap="20px">
-          <FormControl>
-            <Card mb="20px" pb="50px" h="100%">
-              <Flex direction="column" mb="40px">
-                <Text fontSize="xl" color={textColorPrimary} mb="6px" fontWeight="bold">
-                  Consultation Fees
-                </Text>
-                <Text fontSize="md" fontWeight="500" color={textColorSecondary}>
-                  Please enter your consultation fees for each service.
-                </Text>
-              </Flex>
-              <InputField mb="25px" id="fee_messaging" label="Messaging Fee" placeholder="Enter fee for messaging consultation" type="number" value={feeMessaging} onChange={(e) => setFeeMessaging(Number(e.target.value))} />
-              <InputField mb="25px" id="fee_voice_call" label="Voice Call Fee" placeholder="Enter fee for voice call consultation" type="number" value={feeVoiceCall} onChange={(e) => setFeeVoiceCall(Number(e.target.value))} />
-              <InputField mb="25px" id="fee_video_call" label="Video Call Fee" placeholder="Enter fee for video call consultation" type="number" value={feeVideoCall} onChange={(e) => setFeeVideoCall(Number(e.target.value))} />
-              <InputField mb="25px" id="fee_in_person" label="In-Person Consultation Fee" placeholder="Enter fee for in-person consultation" type="number" value={feeInPerson} onChange={(e) => setFeeInPerson(Number(e.target.value))} />
-              <InputField mb="25px" id="fee_third_party" label="Third-Party Consultation Fee" placeholder="Enter fee for consultation with third-party assistance (e.g., interpreter or nurse)" type="number" value={feeThirdParty} onChange={(e) => setFeeThirdParty(Number(e.target.value))} />
-            </Card>
-          </FormControl>
+        <FormControl>
+        <Card mb="20px" pb="50px" h="100%">
+          <Flex direction="column" mb="40px">
+            <Text fontSize="xl" color={textColorPrimary} mb="6px" fontWeight="bold">
+              Consultation Fees
+            </Text>
+            <Text fontSize="md" fontWeight="500" color={textColorSecondary}>
+              Please enter your consultation fees for each service.
+            </Text>
+          </Flex>
+          <DualCurrencyInputField
+            id="fee_messaging"
+            label="Messaging Fee"
+            placeholder="Enter fee for messaging consultation"
+            usdValue={feeMessaging}
+            onUsdChange={setFeeMessaging}
+            region={region}
+          />
+          <DualCurrencyInputField
+            id="fee_voice_call"
+            label="Voice Call Fee"
+            placeholder="Enter fee for voice call consultation"
+            usdValue={feeVoiceCall}
+            onUsdChange={setFeeVoiceCall}
+            region={region}
+          />
+          <DualCurrencyInputField
+            id="fee_video_call"
+            label="Video Call Fee"
+            placeholder="Enter fee for video call consultation"
+            usdValue={feeVideoCall}
+            onUsdChange={setFeeVideoCall}
+            region={region}
+          />
+          <DualCurrencyInputField
+            id="fee_in_person"
+            label="In-Person Consultation Fee"
+            placeholder="Enter fee for in-person consultation"
+            usdValue={feeInPerson}
+            onUsdChange={setFeeInPerson}
+            region={region}
+          />
+          <DualCurrencyInputField
+            id="fee_third_party"
+            label="Third-Party Consultation Fee"
+            placeholder="Enter fee for consultation with third-party assistance (e.g., interpreter or nurse)"
+            usdValue={feeThirdParty}
+            onUsdChange={setFeeThirdParty}
+            region={region}
+          />
+        </Card>
+      </FormControl>
           <FormControl>
             <Card>
               <Flex direction="column" mb="40px">
@@ -246,7 +344,6 @@ export default function Settings() {
               </Flex>
               <Flex flexDirection="column">
                 <InputField mb="25px" id="phone_number" label="Phone Number" placeholder="Enter your phone number" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
-                <InputField mb="25px" id="working_time" label="Working Time" placeholder="e.g., Monday - Friday, 08.00 AM - 20.00 PM" type="text" value={workingTime} onChange={(e) => setWorkingTime(e.target.value)} />
                 <InputField mb="25px" id="address" label="Work Address" placeholder="Enter your address" value={address} onChange={(e) => setAddress(e.target.value)} />
                 <FormControl mb="25px">
                   <Text mb="8px" color={textColorPrimary} fontWeight="500">

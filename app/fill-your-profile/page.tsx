@@ -11,6 +11,10 @@ import {
   Text,
   Button,
   useToast,
+  InputGroup,
+  InputLeftElement,
+  InputLeftAddon,
+  Input
 } from '@chakra-ui/react';
 import Card from '@/components/card/Card';
 import InputField from '@/components/fields/InputField';
@@ -48,25 +52,33 @@ const DualCurrencyInputField = ({
 
   return (
     <Flex direction="column" mb="25px">
-      <Text fontWeight="bold">{label}</Text>
-      <Flex>
-        <InputField
-          id={`${id}_usd`}
-          label="USD"
-          placeholder={placeholder}
-          type="number"
-          value={usdValue}
-          onChange={(e) => onUsdChange(Number(e.target.value))}
-          me="4"
-        />
-        <InputField
-          id={`${id}_local`}
-          label={`Approx. in ${region}`}
-          placeholder={placeholder}
-          type="number"
-          value={localCurrencyValue.toFixed(2)}
-          isReadOnly
-        />
+      <Text fontWeight="bold" mb="8px">{label}</Text>
+      <Flex gap="4">
+        {/* USD Input */}
+        <InputGroup>
+          <InputLeftElement pointerEvents="none" color="gray.300" fontSize="1.2em">
+            $
+          </InputLeftElement>
+          <Input
+            id={`${id}_usd`}
+            placeholder={placeholder}
+            type="number"
+            value={usdValue}
+            onChange={(e) => onUsdChange(Number(e.target.value))}
+          />
+        </InputGroup>
+
+        {/* Local Currency Input */}
+        <InputGroup>
+          <InputLeftAddon>{`Approx. in ${region}`}</InputLeftAddon>
+          <Input
+            id={`${id}_local`}
+            type="number"
+            placeholder={placeholder}
+            value={localCurrencyValue.toFixed(2)}
+            isReadOnly
+          />
+        </InputGroup>
       </Flex>
     </Flex>
   );
@@ -130,6 +142,11 @@ const FillYourProfile = () => {
     return downloadURL;
   };
 
+  const handleScheduleChange = (simplifiedSchedule) => {
+    // Utilise le planning simplifié ici
+    console.log(simplifiedSchedule);
+  };
+
   const handleSave = async () => {
     const currentUser = auth.currentUser;
     if (!currentUser) {
@@ -183,7 +200,7 @@ const FillYourProfile = () => {
         isClosable: true,
       });
 
-      router.push('/dashboard');
+      router.push('/appointment');
     } catch (error) {
       toast({
         title: 'Error',
@@ -254,7 +271,7 @@ const FillYourProfile = () => {
             </Card>
           </FormControl>
           <Box mt="25px">
-            <WeeklyHoursCard />
+            <WeeklyHoursCard onScheduleChange={handleScheduleChange} />;
           </Box>
         </Flex>
         {/* Column Right */}

@@ -14,7 +14,10 @@ import {
 } from '@chakra-ui/react';
 import Card from '@/components/card/Card';
 import { faker } from '@faker-js/faker';
+import useUserStore from '@/store/userStore';
+import { db } from '@/firebase';
 
+// Définition des jours de la semaine
 const daysOfWeek = [
   { name: 'SUN', label: 'Sunday' },
   { name: 'MON', label: 'Monday' },
@@ -25,6 +28,7 @@ const daysOfWeek = [
   { name: 'SAT', label: 'Saturday' },
 ];
 
+// Génération des options horaires à intervalles de 30 minutes
 const timeOptions = Array.from({ length: 48 }, (_, i) => {
   const hour = Math.floor(i / 2).toString().padStart(2, '0');
   const minutes = i % 2 === 0 ? '00' : '30';
@@ -32,6 +36,9 @@ const timeOptions = Array.from({ length: 48 }, (_, i) => {
 });
 
 export default function WeeklyHoursCard({ onScheduleChange }) {
+  const { user } = useUserStore();
+
+  // Initialisation de l'état du planning pour chaque jour de la semaine
   const [schedule, setSchedule] = useState(
     daysOfWeek.reduce(
       (acc, day) => ({
@@ -42,6 +49,7 @@ export default function WeeklyHoursCard({ onScheduleChange }) {
     )
   );
 
+  // Mise à jour du planning simplifié lorsque le planning est modifié
   useEffect(() => {
     const simplifiedSchedule = daysOfWeek.reduce((acc, day) => {
       if (schedule[day.name].checked) {
@@ -52,9 +60,11 @@ export default function WeeklyHoursCard({ onScheduleChange }) {
       return acc;
     }, {});
 
+    // Envoi du planning simplifié au parent via la fonction onScheduleChange
     onScheduleChange(simplifiedSchedule);
   }, [schedule, onScheduleChange]);
 
+  // Gère la sélection ou la désélection d'un jour de la semaine
   const handleDayChange = (day) => {
     setSchedule((prev) => ({
       ...prev,
@@ -65,6 +75,7 @@ export default function WeeklyHoursCard({ onScheduleChange }) {
     }));
   };
 
+  // Gère les modifications d'heures pour un créneau donné (matin ou après-midi)
   const handleSlotChange = (day, index, time, value) => {
     const updatedSlots = [...schedule[day].slots];
     updatedSlots[index][time] = value;
@@ -78,6 +89,7 @@ export default function WeeklyHoursCard({ onScheduleChange }) {
     }));
   };
 
+  // Ajoute un créneau supplémentaire pour un jour donné
   const addSlot = (day) => {
     if (schedule[day].slots.length < 4) {
       setSchedule((prev) => ({
@@ -90,6 +102,7 @@ export default function WeeklyHoursCard({ onScheduleChange }) {
     }
   };
 
+  // Supprime un créneau pour un jour donné
   const removeSlot = (day, index) => {
     const updatedSlots = schedule[day].slots.filter((_, i) => i !== index);
     setSchedule((prev) => ({
@@ -101,16 +114,17 @@ export default function WeeklyHoursCard({ onScheduleChange }) {
     }));
   };
 
-  // Function to generate all time slots within a time range (30-minute intervals)
+  // Génère tous les créneaux horaires disponibles à intervalles de 30 minutes pour une plage donnée
   const generateTimeRange = (start, end) => {
     const times = [];
     let currentTime = start;
     const endTime = end;
 
+    // Boucle pour ajouter chaque créneau de 30 minutes à la liste des horaires disponibles
     while (currentTime <= endTime) {
       times.push({ startTime: currentTime, available: true });
 
-      // Calculate the next time slot (30 minutes later)
+      // Calcul du créneau suivant (ajout de 30 minutes)
       let [hour, minute] = currentTime.split(':').map(Number);
       minute += 30;
       if (minute === 60) {
@@ -123,47 +137,62 @@ export default function WeeklyHoursCard({ onScheduleChange }) {
     return times;
   };
 
-  // Function to generate the final schedule in the desired format
-  const generateFinalSchedule = () => {
+  // Fonction pour obtenir les 3 prochaines dates spécifiques pour un jour donné
+  const getNextThreeDates = (dayName) => {
+    const dates = [];
+    const today = new Date();
+    const dayIndex = daysOfWeek.findIndex(day => day.name === dayName);
+    
+    let currentDay = today.getDay();
+    let dayOffset = (dayIndex + 7 - currentDay) % 7;
+    if (dayOffset === 0) {
+      dayOffset = 7; // Passe à la semaine suivante si c'est le jour même
+    }
+    
+    for (let i = 0; i < 3; i++) {
+      const nextDate = new Date(today);
+      nextDate.setDate(today.getDate() + dayOffset + (i * 7));
+      dates.push(nextDate.toISOString().split('T')[0]);
+    }
+
+    return dates;
+  };
+
+  // Génère le planning final sous le format souhaité pour les trois prochaines occurrences du jour sélectionné
+  const generateFinalSchedule = async () => {
     const finalSchedule = [];
-    daysOfWeek.forEach((day) => {
+    daysOfWeek.forEach(async (day) => {
       if (schedule[day.name].checked) {
-        const availableTimes = schedule[day.name].slots.flatMap((slot) => {
-          let times = [];
-          if (slot.morning && slot.afternoon) {
-            times = generateTimeRange(slot.morning, slot.afternoon);
-          } else if (slot.morning) {
-            times.push({ startTime: slot.morning, available: true });
-          } else if (slot.afternoon) {
-            times.push({ startTime: slot.afternoon, available: true });
-          }
-          return times;
-        });
-        if (availableTimes.length > 0) {
-          finalSchedule.push({
-            id: faker.datatype.uuid(),
-            doctorId: faker.datatype.uuid(),
-            date: new Date().toISOString().split('T')[0],
-            availableTimes: availableTimes,
+        const nextDates = getNextThreeDates(day.name);
+        nextDates.forEach(async date => {
+          const availableTimes = schedule[day.name].slots.flatMap((slot) => {
+            let times = [];
+            if (slot.morning && slot.afternoon) {
+              times = generateTimeRange(slot.morning, slot.afternoon);
+            } else if (slot.morning) {
+              times.push({ startTime: slot.morning, available: true });
+            } else if (slot.afternoon) {
+              times.push({ startTime: slot.afternoon, available: true });
+            }
+            return times;
           });
-        }
+          if (availableTimes.length > 0) {
+            const scheduleData = {
+              id: faker.datatype.uuid(), // Génération d'un identifiant unique
+              doctorId: user.uid, // Utilisation de l'identifiant réel du médecin
+              date: date, // Utilisation de la date calculée
+              availableTimes: availableTimes, // Liste des créneaux horaires disponibles
+            };
+
+            // Ajout du planning dans Firestore
+            await db.collection('doctors-availabilities').doc(scheduleData.id).set(scheduleData);
+
+            finalSchedule.push(scheduleData);
+          }
+        });
       }
     });
     return finalSchedule;
-  };
-
-  // Function to download the generated schedule as a JSON file
-  const downloadScheduleAsJson = () => {
-    const finalSchedule = generateFinalSchedule();
-    const dataStr = JSON.stringify(finalSchedule, null, 4);
-    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-
-    const exportFileDefaultName = 'schedule.json';
-
-    let linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
   };
 
   return (
@@ -173,6 +202,7 @@ export default function WeeklyHoursCard({ onScheduleChange }) {
       </Text>
       {daysOfWeek.map((day) => (
         <Flex key={day.name} align="center" mb={4}>
+          {/* Checkbox pour sélectionner le jour de la semaine */}
           <Checkbox
             isChecked={schedule[day.name].checked}
             onChange={() => handleDayChange(day.name)}
@@ -184,6 +214,7 @@ export default function WeeklyHoursCard({ onScheduleChange }) {
             <Flex flexDirection="column" w="100%">
               {schedule[day.name].slots.map((slot, index) => (
                 <Flex align="center" mb={2} key={index}>
+                  {/* Sélection de l'heure de début (matin) */}
                   <Select
                     placeholder="Select morning time"
                     value={slot.morning}
@@ -199,6 +230,7 @@ export default function WeeklyHoursCard({ onScheduleChange }) {
                     ))}
                   </Select>
                   <Text mx={2}>-</Text>
+                  {/* Sélection de l'heure de fin (après-midi) */}
                   <Select
                     placeholder="Select afternoon time"
                     value={slot.afternoon}
@@ -239,8 +271,8 @@ export default function WeeklyHoursCard({ onScheduleChange }) {
           )}
         </Flex>
       ))}
-      <Button onClick={downloadScheduleAsJson} mt={4} colorScheme="blue">
-        Download Schedule as JSON
+      <Button onClick={generateFinalSchedule} mt={4} colorScheme="blue">
+        Save Schedule
       </Button>
     </Card>
   );
