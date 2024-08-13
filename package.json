@@ -28,6 +28,7 @@
     "@tanstack/react-table": "^8.19.2",
     "@uiw/codemirror-theme-tokyo-night": "^4.23.0",
     "@uiw/react-codemirror": "^4.23.0",
+    "@zegocloud/zego-uikit-prebuilt": "^2.7.0",
     "apexcharts": "^3.49.2",
     "axios": "^1.7.2",
     "babel-cli": "^6.26.0",

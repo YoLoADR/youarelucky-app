@@ -198,6 +198,13 @@ const routes: IRoute[] = [
     invisible: true,
     collapse: false,
   },
+  {
+    name: 'Call',
+    path: '/video-call',
+    icon: <Icon as={IoMdPerson} width="20px" height="20px" color="inherit" />,
+    invisible: true,
+    collapse: false,
+  },
 ];
 
 export default routes;

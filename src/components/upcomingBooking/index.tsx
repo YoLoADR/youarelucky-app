@@ -11,9 +11,13 @@ import {
   import { db } from '@/firebase';
   import useUserStore from '@/store/userStore';
   import { FaStar } from 'react-icons/fa';
+  import { useRouter } from 'next/navigation';
+  import useAppointmentStore from '@/store/appointmentStore';
   
   export default function UpcomingBooking() {
     const { user } = useUserStore();
+    const setCurrentAppointment = useAppointmentStore((state) => state.setCurrentAppointment);
+    const router = useRouter();
     const [bookings, setBookings] = useState([]);
     const toast = useToast();
   
@@ -23,7 +27,7 @@ import {
       if (user && user.uid) {
         unsubscribe = db
           .collection('appointments')
-          .where('userId', '==', user.uid)
+          .where('doctorId', '==', user.uid) // Fetch Current DOCTOR
           .where('status', '==', 'Scheduled')
           .onSnapshot(
             (snapshot) => {
@@ -123,12 +127,23 @@ import {
                   </Flex>
                 </Box>
               </Flex>
-              <Button
-                colorScheme="red"
-                onClick={() => handleCancelAppointment(item)}
-              >
-                Cancel Appointment
-              </Button>
+              <Flex>
+                <Button
+                  colorScheme="blue"
+                  onClick={() => {
+                    router.push('/video-call')
+                    setCurrentAppointment(item);
+                  }}
+                >
+                  Join Call Appointment
+                </Button>
+                <Button
+                  colorScheme="red"
+                  onClick={() => handleCancelAppointment(item)}
+                >
+                  Cancel Appointment
+                </Button>
+              </Flex>
             </Flex>
           </Box>
         ))}
