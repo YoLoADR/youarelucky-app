@@ -23,7 +23,7 @@ import React, { useState, useEffect } from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { MdOutlineRemoveRedEye } from 'react-icons/md';
 import { RiEyeCloseLine } from 'react-icons/ri';
-import { auth, db } from '@/firebase';
+import { auth } from '@/firebase';
 import firebase from 'firebase/compat/app';
 import { useRouter } from 'next/navigation';
 import useUserStore from '@/store/userStore';
@@ -59,7 +59,7 @@ function SignUp() {
 
   // Listening to user state changes
   useEffect(() => {
-    if (user) {
+    if (user && user.email) {
       console.log('User signed up and logged in, redirecting to /fill-your-profile:', user);
       router.push('/fill-your-profile');
     }
@@ -106,7 +106,7 @@ function SignUp() {
     const { displayName, phoneNumber, photoURL, uid, providerData, email } = firebaseUser;
     const userdata = {
       email,
-      displayName,
+      fullName: name || displayName, // Utilisez le nom entré si disponible
       phoneNumber,
       photoURL,
       uid,

@@ -1,12 +1,14 @@
 import { create } from 'zustand';
 
 interface UserState {
-  user: any;
+  user: any | null;
   subscriptions: any[];
   isLoading: boolean;
-  setUser: (user: any) => void;
+  setUser: (user: any | null) => void;
   setSubscriptions: (subscriptions: any[]) => void;
   setLoading: (isLoading: boolean) => void;
+  scheduleGenerations: number;
+  setScheduleGenerations: (generations: number) => void;
 }
 
 const useUserStore = create<UserState>((set) => ({
@@ -17,6 +19,7 @@ const useUserStore = create<UserState>((set) => ({
     phoneNumber: '',
     photoURL: '',
     gender: 'other',
+    role: 'DOCTOR',
     dateOfBirth: '',
     region: '', // Région de l'utilisateur
     specialty: '', // Spécialité de l'utilisateur
@@ -29,6 +32,7 @@ const useUserStore = create<UserState>((set) => ({
     feeInPerson: '', // Frais de consultation en personne
     feeThirdParty: '', // Frais de consultation avec tiers
   },
+  scheduleGenerations: 0,
   setUser: (userData) => set((state) => ({
     user: {
       ...state.user,
@@ -39,6 +43,7 @@ const useUserStore = create<UserState>((set) => ({
   isLoading: false,
   setSubscriptions: (subscriptions) => set({ subscriptions }),
   setLoading: (isLoading) => set({ isLoading }),
+  setScheduleGenerations: (generations) => set({ scheduleGenerations: generations }),
 }));
 
 export default useUserStore;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Flex,
@@ -14,7 +14,7 @@ import {
   InputGroup,
   InputLeftElement,
   InputLeftAddon,
-  Input
+  Input,
 } from '@chakra-ui/react';
 import Card from '@/components/card/Card';
 import InputField from '@/components/fields/InputField';
@@ -26,7 +26,6 @@ import useUserStore from '@/store/userStore';
 import { auth, db, storage } from '@/firebase';
 import { useRouter } from 'next/navigation';
 
-// Objet de conversion approximatif (les taux de change sont fictifs pour l'exemple)
 const conversionRates = {
   'France': 0.85, // 1 USD ≈ 0.85 EUR
   'Ghana': 12.0, // 1 USD ≈ 12 GHS
@@ -38,7 +37,6 @@ const conversionRates = {
   'United Kingdom': 0.75, // 1 USD ≈ 0.75 GBP
 };
 
-// Composant personnalisé pour afficher les montants en deux devises
 const DualCurrencyInputField = ({
   id,
   label,
@@ -59,7 +57,6 @@ const DualCurrencyInputField = ({
     <Flex direction="column" mb="25px">
       <Text fontWeight="bold" mb="8px">{label}</Text>
       <Flex gap="4">
-        {/* USD Input */}
         <InputGroup>
           <InputLeftElement pointerEvents="none" color="gray.300" fontSize="1.2em">
             $
@@ -74,7 +71,6 @@ const DualCurrencyInputField = ({
           />
         </InputGroup>
 
-        {/* Local Currency Input */}
         <InputGroup>
           <InputLeftAddon>{`Approx. in ${region}`}</InputLeftAddon>
           <Input
@@ -92,6 +88,10 @@ const DualCurrencyInputField = ({
 
 const FillYourProfile = () => {
   const { user, setUser } = useUserStore();
+  const [firstName, setFirstName] = useState(user?.firstName || '');
+  const [lastName, setLastName] = useState(user?.lastName || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [username, setUsername] = useState(user?.fullName ? `Dr ${user.lastName} ${user.firstName} ` : '');
   const [specialty, setSpecialty] = useState(user?.specialty || '');
   const [experience, setExperience] = useState(user?.experience || '');
   const [address, setAddress] = useState(user?.address || '');
@@ -105,6 +105,7 @@ const FillYourProfile = () => {
   const [feeThirdParty, setFeeThirdParty] = useState(user?.feeThirdParty || '');
   const [image, setImage] = useState<File | null>(null);
   const [imageURL, setImageURL] = useState(user?.photoURL || '');
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
   const textColorPrimary = useColorModeValue('navy.700', 'white');
   const textColorSecondary = 'gray.500';
@@ -148,9 +149,20 @@ const FillYourProfile = () => {
     return downloadURL;
   };
 
+  const validateForm = () => {
+    if (imageURL && region && experience) {
+      setIsButtonDisabled(false);
+    } else {
+      setIsButtonDisabled(true);
+    }
+  };
+
+  useEffect(() => {
+    validateForm();
+  }, [imageURL, region, experience]);
+
   const handleScheduleChange = (simplifiedSchedule) => {
-    // Utilise le planning simplifié ici
-    console.log(simplifiedSchedule);
+    // console.log(simplifiedSchedule);
   };
 
   const handleSave = async () => {
@@ -174,6 +186,10 @@ const FillYourProfile = () => {
       }
 
       const updatedData = {
+        ...(firstName && { firstName }),
+        ...(lastName && { lastName }),
+        ...(email && { email }),
+        ...(username && { username }),
         ...(specialty && { specialty }),
         ...(experience && { experience }),
         ...(address && { address }),
@@ -186,6 +202,7 @@ const FillYourProfile = () => {
         ...(feeVideoCall && { feeVideoCall }),
         ...(feeInPerson && { feeInPerson }),
         ...(feeThirdParty && { feeThirdParty }),
+        role: "DOCTOR",
         updatedAt: new Date().toISOString(),
       };
 
@@ -266,10 +283,10 @@ const FillYourProfile = () => {
                 </Text>
               </Flex>
               <SimpleGrid columns={{ sm: 1, md: 2 }} spacing={{ base: '20px', xl: '20px' }}>
-                <InputField mb="10px" me="30px" id="first_name" label="First Name" placeholder="Adela" value={user?.firstName} />
-                <InputField mb="10px" id="last_name" label="Last Name" placeholder="Parkson" value={user?.lastName} />
-                <InputField mb="10px" me="30px" id="email" label="Email Address" placeholder="hello@youarelucky.ai" value={user?.email} />
-                <InputField mb="20px" id="username" label="Username" placeholder="@parkson.adela" value={user?.username} />
+                <InputField mb="10px" me="30px" id="first_name" label="First Name" placeholder="Adela" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                <InputField mb="10px" id="last_name" label="Last Name" placeholder="Parkson" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                <InputField mb="10px" me="30px" id="email" label="Email Address" placeholder="hello@youarelucky.ai" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <InputField mb="20px" id="username" label="Username" placeholder="@parkson.adela" value={` Dr ${lastName + firstName}`} onChange={(e) => setUsername(e.target.value)} />
               </SimpleGrid>
               <TextField id="about" label="About Me" minH="150px" placeholder="Tell something about yourself in 150 characters!" value={about} onChange={(e) => setAbout(e.target.value)} />
             </Card>
@@ -280,58 +297,58 @@ const FillYourProfile = () => {
         </Flex>
         {/* Column Right */}
         <Flex direction="column" gap="20px">
-        <FormControl>
-        <Card mb="20px" pb="50px" h="100%">
-          <Flex direction="column" mb="40px">
-            <Text fontSize="xl" color={textColorPrimary} mb="6px" fontWeight="bold">
-              Consultation Fees
-            </Text>
-            <Text fontSize="md" fontWeight="500" color={textColorSecondary}>
-              Please enter your consultation fees for each service.
-            </Text>
-          </Flex>
-          <DualCurrencyInputField
-            id="fee_messaging"
-            label="Messaging Fee"
-            placeholder="Enter fee for messaging consultation"
-            usdValue={feeMessaging}
-            onUsdChange={setFeeMessaging}
-            region={region}
-          />
-          <DualCurrencyInputField
-            id="fee_voice_call"
-            label="Voice Call Fee"
-            placeholder="Enter fee for voice call consultation"
-            usdValue={feeVoiceCall}
-            onUsdChange={setFeeVoiceCall}
-            region={region}
-          />
-          <DualCurrencyInputField
-            id="fee_video_call"
-            label="Video Call Fee"
-            placeholder="Enter fee for video call consultation"
-            usdValue={feeVideoCall}
-            onUsdChange={setFeeVideoCall}
-            region={region}
-          />
-          <DualCurrencyInputField
-            id="fee_in_person"
-            label="In-Person Consultation Fee"
-            placeholder="Enter fee for in-person consultation"
-            usdValue={feeInPerson}
-            onUsdChange={setFeeInPerson}
-            region={region}
-          />
-          <DualCurrencyInputField
-            id="fee_third_party"
-            label="Third-Party Consultation Fee"
-            placeholder="Enter fee for consultation with third-party assistance (e.g., interpreter or nurse)"
-            usdValue={feeThirdParty}
-            onUsdChange={setFeeThirdParty}
-            region={region}
-          />
-        </Card>
-      </FormControl>
+          <FormControl>
+            <Card mb="20px" pb="50px" h="100%">
+              <Flex direction="column" mb="40px">
+                <Text fontSize="xl" color={textColorPrimary} mb="6px" fontWeight="bold">
+                  Consultation Fees
+                </Text>
+                <Text fontSize="md" fontWeight="500" color={textColorSecondary}>
+                  Please enter your consultation fees for each service.
+                </Text>
+              </Flex>
+              <DualCurrencyInputField
+                id="fee_messaging"
+                label="Messaging Fee"
+                placeholder="Enter fee for messaging consultation"
+                usdValue={feeMessaging}
+                onUsdChange={setFeeMessaging}
+                region={region}
+              />
+              <DualCurrencyInputField
+                id="fee_voice_call"
+                label="Voice Call Fee"
+                placeholder="Enter fee for voice call consultation"
+                usdValue={feeVoiceCall}
+                onUsdChange={setFeeVoiceCall}
+                region={region}
+              />
+              <DualCurrencyInputField
+                id="fee_video_call"
+                label="Video Call Fee"
+                placeholder="Enter fee for video call consultation"
+                usdValue={feeVideoCall}
+                onUsdChange={setFeeVideoCall}
+                region={region}
+              />
+              <DualCurrencyInputField
+                id="fee_in_person"
+                label="In-Person Consultation Fee"
+                placeholder="Enter fee for in-person consultation"
+                usdValue={feeInPerson}
+                onUsdChange={setFeeInPerson}
+                region={region}
+              />
+              <DualCurrencyInputField
+                id="fee_third_party"
+                label="Third-Party Consultation Fee"
+                placeholder="Enter fee for consultation with third-party assistance (e.g., interpreter or nurse)"
+                usdValue={feeThirdParty}
+                onUsdChange={setFeeThirdParty}
+                region={region}
+              />
+            </Card>
+          </FormControl>
           <FormControl>
             <Card>
               <Flex direction="column" mb="40px">
@@ -363,7 +380,7 @@ const FillYourProfile = () => {
           </FormControl>
         </Flex>
       </SimpleGrid>
-      <Button colorScheme="teal" size="lg" w="100%" mt={4} onClick={handleSave}>
+      <Button colorScheme="teal" size="lg" w="100%" mt={4} onClick={handleSave} isDisabled={isButtonDisabled}>
         Save Changes
       </Button>
     </Box>
