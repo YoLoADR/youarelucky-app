@@ -87,6 +87,10 @@ const DualCurrencyInputField = ({
 
 const UserProfileForm = () => {
   const { user, setUser } = useUserStore();
+  const [firstName, setFirstName] = useState(user?.firstName || '');
+  const [lastName, setLastName] = useState(user?.lastName || '');
+  const [fullName, setFullName] = useState(user?.fullName || '');
+  const [email, setEmail] = useState(user?.email || '');
   const [specialty, setSpecialty] = useState(user?.specialty || '');
   const [experience, setExperience] = useState(user?.experience || '');
   const [address, setAddress] = useState(user?.address || '');
@@ -164,6 +168,10 @@ const UserProfileForm = () => {
       }
 
       const updatedData = {
+        firstName,
+        lastName,
+        fullName,
+        email,
         specialty,
         experience,
         address,
@@ -259,10 +267,10 @@ const UserProfileForm = () => {
                 </Text>
               </Flex>
               <SimpleGrid columns={{ sm: 1, md: 2 }} spacing={{ base: '20px', xl: '20px' }}>
-                <InputField mb="10px" me="30px" id="first_name" label="First Name" placeholder="Adela" value={user?.firstName} />
-                <InputField mb="10px" id="last_name" label="Last Name" placeholder="Parkson" value={user?.lastName} />
-                <InputField mb="10px" me="30px" id="email" label="Email Address" placeholder="hello@youarelucky.ai" value={user?.email} />
-                <InputField mb="20px" id="username" label="Username" placeholder="@parkson.adela" value={user?.fullName} />
+                <InputField mb="10px" me="30px" id="first_name" label="First Name" placeholder="Adela" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                <InputField mb="10px" id="last_name" label="Last Name" placeholder="Parkson" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                <InputField mb="10px" me="30px" id="email" label="Email Address" placeholder="hello@youarelucky.ai" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <InputField mb="20px" id="full_name" label="Full Name" placeholder="@parkson.adela" value={fullName} onChange={(e) => setFullName(e.target.value)} />
               </SimpleGrid>
               <TextField id="about" label="About Me" minH="150px" placeholder="Tell something about yourself in 150 characters!" value={about} onChange={(e) => setAbout(e.target.value)} />
             </Card>
