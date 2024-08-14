@@ -360,7 +360,19 @@ const UserProfileForm = ({redirectionPath}) => {
           </FormControl>
         </Flex>
       </SimpleGrid>
-      <Button colorScheme="teal" size="lg" w="100%" mt={4} onClick={handleSave} isDisabled={!validateForm()}>
+      <Button 
+          variant="primary"
+          py="20px"
+          px="16px"
+          fontSize="sm"
+          borderRadius="45px"
+          mt={4}
+          w="100%"
+          h="54px"
+          mb="24px"
+          size="lg" 
+          onClick={handleSave} 
+          isDisabled={!validateForm()}>
         Save Changes
       </Button>
     </Box>

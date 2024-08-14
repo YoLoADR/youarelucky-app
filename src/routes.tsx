@@ -1,8 +1,5 @@
 import { Icon } from './lib/chakra';
 import {
-  MdFileCopy,
-  MdHome,
-  MdLock,
   MdLayers,
   MdAutoAwesome,
   MdOutlineManageAccounts,MdAssistant
@@ -29,14 +26,14 @@ const routes: IRoute[] = [
       accessibleDuringTrial: true, 
       requiresPremium: false,
   },
-  {
-    name: 'AI Assistant (Soon)',
-    path: '/ai-assistant',
-    icon: <MdAssistant className="-mt-[7px] h-5 w-5 text-inherit" />,
-    collapse: false,
-    accessibleDuringTrial: true, 
-    requiresPremium: false,
-  },
+  // {
+  //   name: 'AI Assistant (Soon)',
+  //   path: '/ai-assistant',
+  //   icon: <MdAssistant className="-mt-[7px] h-5 w-5 text-inherit" />,
+  //   collapse: false,
+  //   accessibleDuringTrial: true, 
+  //   requiresPremium: false,
+  // },
   // {
   //   name: 'TestManageAppointment',
   //   path: '/testManageAppointment',

@@ -4,9 +4,9 @@
 import { useRouter } from 'next/navigation';
 import Card from '@/components/card/Card';
 import UpcomingBooking from '@/components/upcomingBooking';
+import CompletedBooking from '@/components/completedBooking';
+import CancelledBooking from '@/components/cancelledBooking';
 import { Box, Tabs, TabList, TabPanels, Tab, TabPanel, useColorModeValue } from '@chakra-ui/react';
-import { useEffect } from 'react';
-import { db } from '@/firebase';
 
 export default function Appointment() {
   const router = useRouter();
@@ -37,11 +37,11 @@ export default function Appointment() {
             </TabPanel>
             {/* initially not mounted */}
             <TabPanel>
-              <p>two!</p>
+              <CompletedBooking/>
             </TabPanel>
             {/* initially not mounted */}
             <TabPanel>
-              <p>three!</p>
+              <CancelledBooking/>
             </TabPanel>
           </TabPanels>
         </Tabs>

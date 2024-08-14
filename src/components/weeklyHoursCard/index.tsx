@@ -307,7 +307,17 @@ const [schedule, setSchedule] = useState(
           )}
         </Flex>
       ))}
-      <Button onClick={handleSaveSchedule} mt={4} colorScheme="blue">
+      <Button 
+          variant="primary"
+          py="20px"
+          px="16px"
+          fontSize="sm"
+          borderRadius="45px"
+          mt={4}
+          w="100%"
+          h="54px"
+          mb="24px"
+        onClick={handleSaveSchedule} >
         Save Schedule
       </Button>
 
