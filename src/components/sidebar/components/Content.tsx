@@ -19,7 +19,7 @@ import NavLink from '@/components/link/NavLink';
 import avatarEmpty from '/public/img/avatars/avatar_empty.png';
 import { NextAvatar } from '@/components/image/Avatar';
 import Brand from '@/components/sidebar/components/Brand';
-import Links from '@/components/sidebarDemo/components/Links';
+import Links from '@/components/sidebar/components/Links';
 import { RoundedChart } from '@/components/icons/Icons';
 import { PropsWithChildren } from 'react';
 import { IRoute } from '@/types/navigation';
@@ -28,9 +28,8 @@ import { FiLogOut } from 'react-icons/fi';
 import { LuHistory } from 'react-icons/lu';
 import { MdOutlineManageAccounts, MdOutlineSettings } from 'react-icons/md';
 import { useRouter } from 'next/navigation';
-import { useAppDispatch, useAppSelector } from '@/hooks';
 import { auth } from '@/firebase';
-import { setUser } from '@/store/userSlice';
+import useUserStore from '@/store/userStore';
 import routes from '@/routes';
 
 interface SidebarContent extends PropsWithChildren {
@@ -53,15 +52,17 @@ function SidebarContent(props: SidebarContent) {
   );
   const gray = useColorModeValue('gray.500', 'white');
 
-  const dispatch = useAppDispatch();
   const router = useRouter();
-  const { user, isTrialExpired, needMoreCredits, isSubActive, isTrialActive, isNewComer } = useAppSelector((state) => state.user);
+  
+  // Utilisation de Zustand pour récupérer les informations utilisateur
+  const { user, setUser } = useUserStore();
 
   const logout = async () => {
     try {
       await auth.signOut();
       console.log("User logged out successfully");
-      dispatch(setUser(null));
+      // Passer l'utilisateur à null dans le store
+      setUser(null);
       router.push('/sign-in');
       localStorage.setItem('token', '');
     } catch (error) {
@@ -83,7 +84,7 @@ function SidebarContent(props: SidebarContent) {
       <Brand />
       <Stack direction="column" mb="auto" mt="8px">
         <Box ps="0px" pe={{ md: '0px', '2xl': '0px' }}>
-          <Links isSubActive={isSubActive} isTrialActive={isTrialActive} routes={routes} />
+          <Links routes={routes} />
         </Box>
       </Stack>
       <Flex

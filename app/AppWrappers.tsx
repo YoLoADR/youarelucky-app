@@ -40,17 +40,23 @@ export default function AppWrapper({ children }: { children: ReactNode }) {
 
     const handleFirebaseUser = async (firebaseUser) => {
       const { displayName, phoneNumber, photoURL, uid, providerData, email } = firebaseUser;
-
-      const userdata = {
-        email,
-        displayName,
-        phoneNumber,
-        photoURL,
-        uid,
-        providerData,
+      // Données utilisateur actuelles depuis le store Zustand
+      const currentUser = useUserStore.getState().user;
+    
+      // Fusionner les nouvelles données utilisateur avec l'état actuel
+      const updatedUser = {
+        ...currentUser,
+        email: email || currentUser.email,
+        displayName: displayName || currentUser.displayName,
+        phoneNumber: phoneNumber || currentUser.phoneNumber,
+        photoURL: photoURL || currentUser.photoURL,
+        uid: uid || currentUser.uid,
+        providerData: providerData || currentUser.providerData,
       };
-      setUser(userdata);
+    
+      setUser(updatedUser);
     };
+    
 
     const handleNoFirebaseUser = () => {
       setUser(null);
