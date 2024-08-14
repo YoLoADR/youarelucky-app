@@ -23,7 +23,7 @@ import { NextAvatar } from '@/components/image/Avatar';
 import avatarEmpty from '../../../public/img/avatars/avatar_empty.png';
 import useUserStore from '@/store/userStore';
 import { auth, db, storage } from '@/firebase';
-import { useRouter } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 
 const conversionRates = {
   'France': 0.85,
@@ -85,7 +85,7 @@ const DualCurrencyInputField = ({
   );
 };
 
-const UserProfileForm = () => {
+const UserProfileForm = ({redirectionPath}) => {
   const { user, setUser } = useUserStore();
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
@@ -202,7 +202,7 @@ const UserProfileForm = () => {
         isClosable: true,
       });
 
-      router.push('/appointment');
+      router.push(`${redirectionPath}`);
     } catch (error) {
       toast({
         title: 'Error',

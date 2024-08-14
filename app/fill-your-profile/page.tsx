@@ -4,7 +4,7 @@ import React from 'react';
 import UserProfileForm from '@/components/userProfileForm';
 
 const FillYourProfile = () => {
-  return <UserProfileForm />;
+  return <UserProfileForm redirectionPath="/sign-in" />;
 };
 
 export default FillYourProfile;
