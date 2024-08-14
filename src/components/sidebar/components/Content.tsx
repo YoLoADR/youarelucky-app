@@ -97,7 +97,7 @@ function SidebarContent(props: SidebarContent) {
       >
         <NextAvatar h="34px" w="34px" src={user?.photoURL ? user?.photoURL : avatarEmpty} me="10px" />
         <Text color={textColor} fontSize="xs" fontWeight="600" me="10px">
-          {user?.displayName ? user.displayName : "Username"}
+          {user?.fullName ? `Dr. ${user.fullName}` : "Username"}
         </Text>
         <Menu>
           <MenuButton
@@ -150,54 +150,6 @@ function SidebarContent(props: SidebarContent) {
                   />
                   <Text color={gray} fontWeight="500" fontSize="sm">
                     Profile Settings
-                  </Text>
-                </Flex>
-              </NavLink>
-            </Box>
-            <Box mb="30px">
-              <NavLink href="/history">
-                <Flex align="center">
-                  <Icon
-                    as={LuHistory}
-                    width="24px"
-                    height="24px"
-                    color={gray}
-                    me="12px"
-                  />
-                  <Text color={gray} fontWeight="500" fontSize="sm">
-                    History
-                  </Text>
-                </Flex>
-              </NavLink>
-            </Box>
-            <Box mb="30px">
-              <NavLink href="/usage">
-                <Flex align="center">
-                  <Icon
-                    as={RoundedChart}
-                    width="24px"
-                    height="24px"
-                    color={gray}
-                    me="12px"
-                  />
-                  <Text color={gray} fontWeight="500" fontSize="sm">
-                    Usage
-                  </Text>
-                </Flex>
-              </NavLink>
-            </Box>
-            <Box>
-              <NavLink href="/my-plan">
-                <Flex align="center">
-                  <Icon
-                    as={IoMdPerson}
-                    width="24px"
-                    height="24px"
-                    color={gray}
-                    me="12px"
-                  />
-                  <Text color={gray} fontWeight="500" fontSize="sm">
-                    My Plan
                   </Text>
                 </Flex>
               </NavLink>

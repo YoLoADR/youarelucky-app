@@ -25,8 +25,7 @@ import NavLink from '../link/NavLink';
 import routes from '@/routes';
 import { auth } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import { useAppDispatch, useAppSelector } from '@/hooks';
-import { setMockMode, setUser } from '@/store/userSlice';
+import useUserStore from '@/store/userStore';
 
 export default function HeaderLinks(props: { secondary: boolean; setApiKey: any; }) {
   const { secondary, setApiKey } = props;
@@ -50,15 +49,16 @@ export default function HeaderLinks(props: { secondary: boolean; setApiKey: any;
     { bg: 'whiteAlpha.200' },
   );
 
-  const dispatch = useAppDispatch();
-  const { mockMode, user } = useAppSelector((state) => state.user);
   const router = useRouter();
+
+  const { user, setUser } = useUserStore();
 
   const logout = async () => {
     try {
       await auth.signOut();
       console.log("User logged out successfully");
-      dispatch(setUser(null));
+      // Passer l'utilisateur à null dans le store
+      setUser(null);
       router.push('/sign-in');
       localStorage.setItem('token', '');
     } catch (error) {
@@ -79,19 +79,6 @@ export default function HeaderLinks(props: { secondary: boolean; setApiKey: any;
       boxShadow={shadow}
     >
       <SidebarResponsive routes={routes} />
-      <UploadModal setApiKey={"setApiKey"} />
-      <Menu>
-        <MenuButton p="0px" onClick={() => dispatch(setMockMode(!mockMode))}>
-          <Icon
-            mt="6px"
-            as={MdInfoOutline}
-            color={navbarIcon}
-            w="18px"
-            h="18px"
-            me="10px"
-          />
-        </MenuButton>
-      </Menu>
 
       <Button
         variant="no-hover"
@@ -123,7 +110,7 @@ export default function HeaderLinks(props: { secondary: boolean; setApiKey: any;
           />
           <Center top={0} left={0} position={'absolute'} w={'100%'} h={'100%'}>
             <Text fontSize={'xs'} fontWeight="bold" color={'white'}>
-              {user?.first_name ? user.first_name.slice(0, 2).toUpperCase() : 'UP'}
+              {user?.firstName ? user.firstName.slice(0, 2).toUpperCase() : 'UP'}
             </Text>
           </Center>
         </MenuButton>
@@ -147,7 +134,7 @@ export default function HeaderLinks(props: { secondary: boolean; setApiKey: any;
               fontWeight="700"
               color={textColor}
             >
-              👋&nbsp; Hey, {user?.first_name ? user.first_name : 'User'}
+              👋&nbsp; Hey, {user?.fullName ? `Dr. ${user.fullName}` : 'User'}
             </Text>
           </Flex>
           <Flex flexDirection="column" p="10px">
