@@ -62,7 +62,6 @@ export default function Settings() {
             placeholder="Parkson"
           />
         </SimpleGrid>
-        <InputField id="job" label="Job" placeholder="Web Developer" />
         <TextField
           id="about"
           label="About Me"

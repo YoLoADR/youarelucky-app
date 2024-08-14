@@ -25,7 +25,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       <html lang="en">
         <body id={'root'}>
           <AppWrapper>
-            {pathname?.includes('register') || pathname?.includes('sign-in') ? (
+            {pathname?.includes('sign-up') || pathname?.includes('sign-in') || pathname?.includes('fill-your-profile')? (
               children
             ) : (
               <Box>

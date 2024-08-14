@@ -28,6 +28,7 @@
     "@tanstack/react-table": "^8.19.2",
     "@uiw/codemirror-theme-tokyo-night": "^4.23.0",
     "@uiw/react-codemirror": "^4.23.0",
+    "@zegocloud/zego-uikit-prebuilt": "^2.7.0",
     "apexcharts": "^3.49.2",
     "axios": "^1.7.2",
     "babel-cli": "^6.26.0",
@@ -56,7 +57,8 @@
     "react-toastify": "^10.0.5",
     "stripe": "^16.1.0",
     "typescript": "4.9.5",
-    "web3": "^4.10.0"
+    "web3": "^4.10.0",
+    "zustand": "^4.5.4"
   },
   "devDependencies": {
     "@types/node": "20.14.9",

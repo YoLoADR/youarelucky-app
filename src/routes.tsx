@@ -1,8 +1,5 @@
 import { Icon } from './lib/chakra';
 import {
-  MdFileCopy,
-  MdHome,
-  MdLock,
   MdLayers,
   MdAutoAwesome,
   MdOutlineManageAccounts,MdAssistant
@@ -16,20 +13,34 @@ import { IRoute } from './types/navigation';
 
 const routes: IRoute[] = [
   {
-    name: 'My Projects',
-    path: '/my-projects',
+    name: 'My Appointment',
+    path: '/appointment',
     icon: <Icon as={MdLayers} width="20px" height="20px" color="inherit" />,
     accessibleDuringTrial: true, 
     requiresPremium: false,
   },
   {
-    name: 'AI Assistant',
-    path: '/ai-assistant',
-    icon: <MdAssistant className="-mt-[7px] h-5 w-5 text-inherit" />,
-    collapse: false,
-    accessibleDuringTrial: true, 
-    requiresPremium: false,
+    name: 'Availability',
+    path: '/availability',
+      icon: <Icon as={LuHistory} width="20px" height="20px" color="inherit" />,
+      accessibleDuringTrial: true, 
+      requiresPremium: false,
   },
+  // {
+  //   name: 'AI Assistant (Soon)',
+  //   path: '/ai-assistant',
+  //   icon: <MdAssistant className="-mt-[7px] h-5 w-5 text-inherit" />,
+  //   collapse: false,
+  //   accessibleDuringTrial: true, 
+  //   requiresPremium: false,
+  // },
+  // {
+  //   name: 'TestManageAppointment',
+  //   path: '/testManageAppointment',
+  //   icon: <Icon as={LuHistory} width="20px" height="20px" color="inherit" />,
+  //   accessibleDuringTrial: true, 
+  //   requiresPremium: false,
+  // },
   {
     name: 'Profile Settings',
     path: '/settings',
@@ -80,8 +91,8 @@ const routes: IRoute[] = [
     collapse: false,
   },
   {
-    name: 'Register',
-    path: '/register',
+    name: 'Sign Up',
+    path: '/sign-up',
     icon: <Icon as={RoundedChart} width="20px" height="20px" color="inherit" />,
     invisible: true,
     collapse: false,
@@ -180,6 +191,20 @@ const routes: IRoute[] = [
   {
     name: 'Nurse Dashboard',
     path: '/nurse-dashboard',
+    icon: <Icon as={IoMdPerson} width="20px" height="20px" color="inherit" />,
+    invisible: true,
+    collapse: false,
+  },
+  {
+    name: 'Fill Your Profile',
+    path: '/fill-your-profile',
+    icon: <Icon as={IoMdPerson} width="20px" height="20px" color="inherit" />,
+    invisible: true,
+    collapse: false,
+  },
+  {
+    name: 'Call',
+    path: '/video-call',
     icon: <Icon as={IoMdPerson} width="20px" height="20px" color="inherit" />,
     invisible: true,
     collapse: false,

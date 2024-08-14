@@ -19,9 +19,7 @@ import NavLink from '@/components/link/NavLink';
 import avatarEmpty from '/public/img/avatars/avatar_empty.png';
 import { NextAvatar } from '@/components/image/Avatar';
 import Brand from '@/components/sidebar/components/Brand';
-// TODO : On utilise la version DEMO "sidebarDemo"
-import Links from '@/components/sidebarDemo/components/Links';
-import SidebarDocs from '@/components/sidebar/components/SidebarCard';
+import Links from '@/components/sidebar/components/Links';
 import { RoundedChart } from '@/components/icons/Icons';
 import { PropsWithChildren } from 'react';
 import { IRoute } from '@/types/navigation';
@@ -30,11 +28,9 @@ import { FiLogOut } from 'react-icons/fi';
 import { LuHistory } from 'react-icons/lu';
 import { MdOutlineManageAccounts, MdOutlineSettings } from 'react-icons/md';
 import { useRouter } from 'next/navigation';
-import { useAppDispatch, useAppSelector } from '@/hooks';
 import { auth } from '@/firebase';
-import { setUser } from '@/store/userSlice';
+import useUserStore from '@/store/userStore';
 import routes from '@/routes';
-import routesDemo from '@/routesDemo';
 
 interface SidebarContent extends PropsWithChildren {
   routes: IRoute[];
@@ -56,15 +52,17 @@ function SidebarContent(props: SidebarContent) {
   );
   const gray = useColorModeValue('gray.500', 'white');
 
-  const dispatch = useAppDispatch();
   const router = useRouter();
-  const { user, isTrialExpired, needMoreCredits, isSubActive, isTrialActive, isNewComer } = useAppSelector((state) => state.user);
+  
+  // Utilisation de Zustand pour récupérer les informations utilisateur
+  const { user, setUser } = useUserStore();
 
   const logout = async () => {
     try {
       await auth.signOut();
       console.log("User logged out successfully");
-      dispatch(setUser(null));
+      // Passer l'utilisateur à null dans le store
+      setUser(null);
       router.push('/sign-in');
       localStorage.setItem('token', '');
     } catch (error) {
@@ -86,16 +84,9 @@ function SidebarContent(props: SidebarContent) {
       <Brand />
       <Stack direction="column" mb="auto" mt="8px">
         <Box ps="0px" pe={{ md: '0px', '2xl': '0px' }}>
-          <Links isSubActive={isSubActive} isTrialActive={isTrialActive} routes={(isSubActive || isTrialActive) ? routes : routesDemo} />
+          <Links routes={routes} />
         </Box>
       </Stack>
-      {!isSubActive && 
-      <Box mt="60px" width={'100%'} display={'flex'} justifyContent={'center'}>
-        <SidebarDocs />
-      </Box>}
-      {/* "TODO : Graph de la consomation de l'utilisateur" */}
-      {/* { isSubActive && <SidebarDocs /> } */}
-      {/* <APIModal setApiKey={setApiKey} sidebar={true} /> */}
       <Flex
         mt="8px"
         justifyContent="center"
@@ -106,7 +97,7 @@ function SidebarContent(props: SidebarContent) {
       >
         <NextAvatar h="34px" w="34px" src={user?.photoURL ? user?.photoURL : avatarEmpty} me="10px" />
         <Text color={textColor} fontSize="xs" fontWeight="600" me="10px">
-          {user?.displayName ? user.displayName : "Username"}
+          {user?.fullName ? `Dr. ${user.fullName}` : "Username"}
         </Text>
         <Menu>
           <MenuButton
@@ -159,54 +150,6 @@ function SidebarContent(props: SidebarContent) {
                   />
                   <Text color={gray} fontWeight="500" fontSize="sm">
                     Profile Settings
-                  </Text>
-                </Flex>
-              </NavLink>
-            </Box>
-            <Box mb="30px">
-              <NavLink href="/history">
-                <Flex align="center">
-                  <Icon
-                    as={LuHistory}
-                    width="24px"
-                    height="24px"
-                    color={gray}
-                    me="12px"
-                  />
-                  <Text color={gray} fontWeight="500" fontSize="sm">
-                    History
-                  </Text>
-                </Flex>
-              </NavLink>
-            </Box>
-            <Box mb="30px">
-              <NavLink href="/usage">
-                <Flex align="center">
-                  <Icon
-                    as={RoundedChart}
-                    width="24px"
-                    height="24px"
-                    color={gray}
-                    me="12px"
-                  />
-                  <Text color={gray} fontWeight="500" fontSize="sm">
-                    Usage
-                  </Text>
-                </Flex>
-              </NavLink>
-            </Box>
-            <Box>
-              <NavLink href="/my-plan">
-                <Flex align="center">
-                  <Icon
-                    as={IoMdPerson}
-                    width="24px"
-                    height="24px"
-                    color={gray}
-                    me="12px"
-                  />
-                  <Text color={gray} fontWeight="500" fontSize="sm">
-                    My Plan
                   </Text>
                 </Flex>
               </NavLink>
