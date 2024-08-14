@@ -19,7 +19,6 @@ import {
 import Card from '@/components/card/Card';
 import InputField from '@/components/fields/InputField';
 import TextField from '@/components/fields/TextField';
-import WeeklyHoursCard from '@/components/weeklyHoursCard';
 import { NextAvatar } from '@/components/image/Avatar';
 import avatarEmpty from '../../public/img/avatars/avatar_empty.png';
 import useUserStore from '@/store/userStore';
@@ -161,9 +160,6 @@ const FillYourProfile = () => {
     validateForm();
   }, [imageURL, region, experience]);
 
-  const handleScheduleChange = (simplifiedSchedule) => {
-    // console.log(simplifiedSchedule);
-  };
 
   const handleSave = async () => {
     const currentUser = auth.currentUser;
@@ -291,9 +287,6 @@ const FillYourProfile = () => {
               <TextField id="about" label="About Me" minH="150px" placeholder="Tell something about yourself in 150 characters!" value={about} onChange={(e) => setAbout(e.target.value)} />
             </Card>
           </FormControl>
-          <Box mt="25px">
-            <WeeklyHoursCard onScheduleChange={handleScheduleChange} />;
-          </Box>
         </Flex>
         {/* Column Right */}
         <Flex direction="column" gap="20px">

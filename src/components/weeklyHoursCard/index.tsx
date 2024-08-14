@@ -156,6 +156,31 @@ const [schedule, setSchedule] = useState(
     return dates;
   };
 
+  // Fonction pour supprimer les disponibilités actuelles du médecin
+  const deleteAvailableTimes = async () => {
+    const availabilitySnapshot = await db
+      .collection('doctors-availabilities')
+      .where('doctorId', '==', user.uid)
+      .get();
+
+    const docsToDelete = [];
+    availabilitySnapshot.forEach((doc) => {
+      const data = doc.data();
+      const hasAvailableTimes = data.availableTimes.some((timeSlot) => timeSlot.available === true);
+
+      if (hasAvailableTimes) {
+        docsToDelete.push(doc.ref);
+      }
+    });
+
+    for (const docRef of docsToDelete) {
+      await docRef.delete();
+      console.log(`Deleted availability with ID: ${docRef.id}`);
+    }
+
+    console.log(`Deleted ${docsToDelete.length} documents with available slots.`);
+  };
+
   const generateFinalSchedule = async () => {
     const finalSchedule = [];
     daysOfWeek.forEach(async (day) => {
@@ -201,6 +226,10 @@ const [schedule, setSchedule] = useState(
   };
 
   const handleConfirmGenerate = async () => {
+    // Supprimer les disponibilités actuelles avant de générer de nouvelles
+    await deleteAvailableTimes();
+
+    // Ensuite, générer le nouveau planning
     await generateFinalSchedule();
     onClose();
   };
@@ -289,7 +318,7 @@ const [schedule, setSchedule] = useState(
         onClose={onClose}
       >
         <AlertDialogOverlay>
-          <AlertDialogContent>
+          <AlertDialogContent backgroundColor="white">
             <AlertDialogHeader fontSize="lg" fontWeight="bold">
               Confirm Schedule Generation
             </AlertDialogHeader>
